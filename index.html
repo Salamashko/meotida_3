@@ -2770,10 +2770,16 @@ function buildUpdName(originalName, newUuid){
   const extM = String(originalName).match(/\.(xml|txt)$/i);
   const ext = extM ? extM[0] : '';
   const base = ext ? originalName.slice(0, originalName.length - ext.length) : originalName;
-  const um = base.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
-  if(!um) return { ok:false, error:'В имени файла не найден UUID в конце имени (нужен формат ..._uuid.xml).' };
-  const oldUuid = um[0].toLowerCase();
-  const outputBase = base.slice(0, um.index) + newUuid;
+  // UUID может стоять НЕ в конце имени: у УПД он в середине (…_UUID_0_1_0_1_0_00),
+  // у УКД — в конце. Берём последний UUID формата 8-4-4-4-12 где бы он ни стоял,
+  // остальную часть имени (в т.ч. хвост после UUID) сохраняем.
+  const uuidRe = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/ig;
+  const matches = [...base.matchAll(uuidRe)];
+  if(!matches.length) return { ok:false, error:'В имени файла не найден UUID (формат 8-4-4-4-12). У УПД он обычно в середине имени, у УКД — в конце.' };
+  const last = matches[matches.length - 1];
+  const oldUuid = last[0].toLowerCase();
+  const idx = last.index;
+  const outputBase = base.slice(0, idx) + newUuid + base.slice(idx + last[0].length);
   return { ok:true, oldUuid, outputBase, outputFileName: outputBase + '.xml' };
 }
 
@@ -3399,7 +3405,7 @@ window.pfRemove = pfRemove;
 $('tab-nd').addEventListener('click', e=>{ const b=e.target.closest('[data-copy]'); if(b) copyText(b.getAttribute('data-copy').replace(/\\n/g,'\n'), b); });
 
 /* ---------- версия / автор (в шапке) ---------- */
-const APP_VERSION = 'v3';
+const APP_VERSION = 'v4';
 const APP_DATE = '16.07.2026';
 (function renderVersion(){
   const el = $('appCredit');
