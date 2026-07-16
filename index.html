@@ -74,10 +74,13 @@ code,.mono{font-family:var(--font-mono)}
   border-bottom:1px solid var(--hair);
 }
 .topbar-in{display:flex;align-items:center;gap:16px;padding:14px 20px;max-width:var(--maxw);margin:0 auto;flex-wrap:wrap}
-.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brand{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.brand-main{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .brand .mark{font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:-.03em;color:var(--text);white-space:nowrap}
 .brand .mark .accent{background:linear-gradient(120deg,var(--accent-2),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
 .brand .tag{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);white-space:nowrap}
+.brand-credit{font-size:10.5px;letter-spacing:.05em;color:var(--text-3)}
+.brand-credit .cr-name{color:var(--accent-2);font-weight:600}
 .topbar-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
 .theme-btn{
   width:40px;height:40px;flex:none;border-radius:50%;border:1px solid var(--hair-2);
@@ -422,8 +425,11 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 
 <div class="topbar"><div class="topbar-in">
   <div class="brand">
-    <span class="mark">МЕОТИДА<span class="accent"> ·</span></span>
-    <span class="tag">маркировочный стол</span>
+    <div class="brand-main">
+      <span class="mark">МЕОТИДА<span class="accent"> ·</span></span>
+      <span class="tag">маркировочный стол</span>
+    </div>
+    <div class="brand-credit mono" id="appCredit"></div>
   </div>
   <div class="topbar-actions">
     <button class="btn btn-sm btn-danger" id="clearAllBtn" title="Очистить все поля во всех вкладках">✕ Очистить всё</button>
@@ -980,11 +986,6 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 </section>
 
 </main>
-
-<footer class="app-footer">
-  <span class="mono">МЕОТИДА · Маркировочный стол · <span id="appVersion"></span></span>
-  <span class="mono credit">Разработано Викторией Саламашко</span>
-</footer>
 
 <div id="toast"></div>
 <div class="imgmodal" id="imgModal" onclick="this.classList.remove('open')"><img id="imgModalImg" src="" alt=""></div>
@@ -3397,16 +3398,12 @@ window.pfRemove = pfRemove;
 /* ---------- copy delegation по всей вкладке Недостача ---------- */
 $('tab-nd').addEventListener('click', e=>{ const b=e.target.closest('[data-copy]'); if(b) copyText(b.getAttribute('data-copy').replace(/\\n/g,'\n'), b); });
 
-/* ---------- версия / автор ---------- */
-const APP_VERSION = 'v2';
+/* ---------- версия / автор (в шапке) ---------- */
+const APP_VERSION = 'v3';
 const APP_DATE = '16.07.2026';
 (function renderVersion(){
-  if($('appVersion')) $('appVersion').textContent = APP_VERSION + ' · ' + APP_DATE;
-  const chip = document.createElement('span');
-  chip.className = 'verchip';
-  chip.textContent = APP_VERSION + ' · ' + APP_DATE;
-  const actions = document.querySelector('.topbar-actions');
-  if(actions) actions.insertBefore(chip, actions.firstChild);
+  const el = $('appCredit');
+  if(el) el.innerHTML = `${esc(APP_VERSION)} · ${esc(APP_DATE)} · <span class="cr-name">Разработано Викторией Саламашко</span>`;
 })();
 
 /* ---------- init ---------- */
