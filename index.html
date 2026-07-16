@@ -374,6 +374,46 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 #tab-ukd .small-note{font-size:12px;color:var(--text-3);line-height:1.45;margin-top:7px}
 #tab-ukd .ukd-footer{margin-top:16px;color:var(--text-3);font-size:12px;text-align:center}
 
+/* ---- УКД: цветные кнопки (у каждой свой цвет), как в остальном приложении ---- */
+#tab-ukd .actions button,#tab-ukd button.primary,#tab-ukd button.secondary,#tab-ukd button.danger,#tab-ukd .code-toolbar button{
+  border-radius:var(--radius);padding:11px 16px;font-size:13px;font-weight:700;font-family:var(--font-sans);
+  cursor:pointer;border:1px solid var(--hair-2);transition:.2s var(--ease)
+}
+#tab-ukd button.primary{background:var(--accent);color:var(--btn-fg);border-color:transparent}
+#tab-ukd button.primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+#tab-ukd button.danger{background:var(--accent-2);color:var(--btn-fg);border-color:transparent}
+#tab-ukd button.danger:hover{filter:brightness(1.08);transform:translateY(-1px)}
+#tab-ukd button.secondary{background:var(--surface-2);color:var(--text-2)}
+#tab-ukd button.secondary:hover{border-color:var(--accent);color:var(--text);transform:translateY(-1px)}
+#tab-ukd button.small{padding:8px 12px;font-size:12px;border-radius:8px}
+#tab-ukd button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+/* ---- вкладка СвВыбытияМАРК: компоненты как у УКД ---- */
+#tab-mark .status{margin-top:14px;border-radius:var(--radius);padding:12px 14px;font-size:13.5px;line-height:1.5;display:none}
+#tab-mark .status.show{display:block}
+#tab-mark .status.ok{background:color-mix(in srgb,var(--emerald) 12%,transparent);color:var(--emerald);border:1px solid color-mix(in srgb,var(--emerald) 35%,transparent)}
+#tab-mark .status.warn{background:color-mix(in srgb,var(--amber) 12%,transparent);color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 35%,transparent)}
+#tab-mark .status.err{background:color-mix(in srgb,var(--coral) 12%,transparent);color:var(--coral);border:1px solid color-mix(in srgb,var(--coral) 35%,transparent)}
+#tab-mark .result-list{display:grid;gap:10px;max-height:560px;overflow:auto;padding-right:4px}
+#tab-mark .result-item{border:1px solid var(--hair);border-radius:var(--radius);padding:12px;background:var(--bg-2)}
+#tab-mark .result-item strong{display:block;word-break:break-all;margin-bottom:6px}
+#tab-mark .result-meta{color:var(--text-3);font-size:12px;line-height:1.5;word-break:break-all}
+#tab-mark .result-meta code{font-size:11px}
+#tab-mark .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:100px;font-family:var(--font-mono);font-size:11px;font-weight:600;margin-top:8px}
+#tab-mark .badge.ok{background:color-mix(in srgb,var(--emerald) 16%,transparent);color:var(--emerald)}
+#tab-mark .badge.err{background:color-mix(in srgb,var(--coral) 16%,transparent);color:var(--coral)}
+
+/* ---- «загрузить все файлы разом»: список имён ---- */
+.all-name-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 11px;border:1px solid var(--hair);border-radius:var(--radius);margin-top:7px;background:var(--bg-2);font-size:12.5px}
+.all-name-row .an-step{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);min-width:74px}
+.all-name-row .an-name{font-family:var(--font-mono);color:var(--accent-2);font-weight:600;word-break:break-all;flex:1;min-width:120px}
+
+/* ---- футер: версия + автор ---- */
+.app-footer{max-width:var(--maxw);margin:0 auto;padding:22px 20px 40px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--text-3);font-size:11.5px;letter-spacing:.06em}
+.app-footer .credit{color:var(--accent-2)}
+.topbar .verchip{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;color:var(--text-3);white-space:nowrap;padding:5px 10px;border:1px solid var(--hair);border-radius:100px}
+@media(max-width:640px){.topbar .verchip{display:none}}
+
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 </style>
@@ -399,6 +439,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
   <button class="tabbtn" data-tab="pf">План / Факт</button>
   <button class="tabbtn" data-tab="gtin">GTIN / МЦ</button>
   <button class="tabbtn" data-tab="ukd">УКД → иУКД</button>
+  <button class="tabbtn" data-tab="mark">СвВыбытияМАРК</button>
   <button class="tabbtn" data-tab="help">Как пользоваться</button>
 </div></div>
 
@@ -424,6 +465,24 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
       <div id="sessHits"></div>
       <div id="sessList"></div>
     </details>
+  </div>
+
+  <div class="card">
+    <div class="step-head"><span class="step-num" style="color:var(--accent)">⇊</span>
+      <div><h3>Загрузить все файлы разом</h3><div class="sub">все выгрузки, которые ниже сохраняются пошагово — можно загрузить сразу</div></div>
+    </div>
+    <div class="hint">Загрузите сразу несколько файлов (или архив .zip) — приложение само разложит их по шагам по имени файла (инфопотамо → шаг 2, составмарки → шаг 3, агрегация_1 → шаг 4, агрегация_2 → шаг 5, отсутствуют → шаг 7). Имена как раз те, что приложение подсказывает на каждом шаге.</div>
+    <div class="dropzone" id="ndAllDrop">
+      <strong>⊕ Нажмите или перетащите сюда все файлы (.xls / .xlsx / .txt) или архив .zip</strong>
+      <div class="dz-sub">можно выбрать несколько файлов сразу</div>
+      <input type="file" id="ndAllInput" accept=".txt,.xls,.xlsx,.csv,.zip" multiple>
+    </div>
+    <div id="ndAllMsg"></div>
+    <div id="allNamesBox" style="display:none;margin-top:12px">
+      <div class="row" style="justify-content:space-between"><span class="pane-label accent2">Как называть все файлы</span>
+        <button class="btn btn-sm" onclick="copyAllNames(this)">📋 Скопировать все имена</button></div>
+      <div id="allNamesList" style="margin-top:8px"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -584,41 +643,9 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 <section class="tab" id="tab-pf">
   <div class="eyebrow">сверка кодов</div>
   <h1 class="tab-title">План / <span class="accent">Факт</span></h1>
-  <p class="tab-lede">Ручное сравнение двух списков кодов: слева план, справа факт. Показывает, чего не хватает в факте и что в факте лишнее.</p>
-  <div class="pf-grid">
-    <div class="card">
-      <div class="pane-head"><span class="pane-label accent2">ПЛАН</span><span class="pane-count" id="cnt-plan">0 строк</span></div>
-      <div class="field" data-field="pf-plan" data-accept=".txt,.xls,.xlsx,.csv" data-label="План" data-oninput="pfCount('plan')">
-        <textarea id="pf-plan" placeholder="Вставьте коды плана (по одному на строку)…" style="min-height:230px"></textarea>
-      </div>
-    </div>
-    <div class="card">
-      <div class="pane-head"><span class="pane-label accent">ФАКТ</span><span class="pane-count" id="cnt-fact">0 строк</span></div>
-      <div class="field" data-field="pf-fact" data-accept=".txt,.xls,.xlsx,.csv" data-label="Факт" data-oninput="pfCount('fact')">
-        <textarea id="pf-fact" placeholder="Вставьте коды факта (по одному на строку)…" style="min-height:230px"></textarea>
-      </div>
-    </div>
-  </div>
-  <div class="row" style="margin-bottom:14px">
-    <button class="btn btn-primary" onclick="pfCompare()">Найти расхождения</button>
-    <button class="btn" onclick="pfClear()">Очистить</button>
-  </div>
-  <div class="stat-strip" id="pf-stats" style="display:none">
-    <div class="stat"><div class="num" id="pf-s-plan">0</div><div class="lbl">план</div></div>
-    <div class="stat"><div class="num accent" id="pf-s-fact">0</div><div class="lbl">факт</div></div>
-    <div class="stat"><div class="num danger" id="pf-s-diff">0</div><div class="lbl">расхождений</div></div>
-    <div class="stat"><div class="num accent2" id="pf-s-extra">0</div><div class="lbl">лишних в факте</div></div>
-  </div>
-  <div class="card" id="pf-result-wrap" style="display:none">
-    <div class="pane-head"><span class="pane-label" style="color:var(--coral)">Отсутствуют в факте</span>
-      <button class="btn btn-sm" onclick="copyText(document.getElementById('pf-result').value, this)">📋 Скопировать</button></div>
-    <textarea id="pf-result" readonly style="min-height:170px"></textarea>
-    <div id="pf-extra-wrap" style="display:none">
-      <div class="pane-head" style="margin-top:12px"><span class="pane-label accent2">Есть в факте, но нет в плане</span>
-        <button class="btn btn-sm" onclick="copyText(document.getElementById('pf-extra').value, this)">📋 Скопировать</button></div>
-      <textarea id="pf-extra" readonly style="min-height:120px"></textarea>
-    </div>
-  </div>
+  <p class="tab-lede">Ручное сравнение двух списков кодов: слева план, справа факт. Показывает, чего не хватает в факте и что в факте лишнее. Кнопкой ниже можно добавить ещё сравнения — например, коды блоков вверху и коды пачек ниже, всё на одном экране.</p>
+  <div id="pfList"></div>
+  <button class="btn btn-accent2" onclick="pfAdd()">＋ Добавить ещё сравнение</button>
 </section>
 
 <!-- ==================== GTIN / МЦ ==================== -->
@@ -820,6 +847,52 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 
 </section>
 
+<!-- ==================== СвВыбытияМАРК ==================== -->
+<section class="tab" id="tab-mark">
+  <div class="eyebrow">ЭДО · вывод из оборота для собственных нужд</div>
+  <h1 class="tab-title">Вывод кодов <span class="accent">(СвВыбытияМАРК)</span></h1>
+  <p class="tab-lede">Добавляет в УПД признак вывода из оборота для собственных нужд — <code>&lt;ТекстИнф Идентиф="СвВыбытияМАРК" Значен="3"/&gt;</code> в блок <code>ИнфПолФХЖ1</code>, проставляет новый UUID v4 (в имени файла и в <code>ИдФайл</code>) и, при необходимости, дату <code>ДатаСчФ</code>. Работает локально, ничего не отправляет.</p>
+
+  <div class="grid2" style="align-items:start">
+    <div class="card">
+      <h3>1. Загрузка, дата и скачивание</h3>
+      <div class="dropzone" id="markDrop">
+        <strong>⊕ Перетащите сюда УПД (XML) или выберите файлы</strong>
+        <div class="dz-sub">можно один или несколько файлов · .xml / .txt</div>
+        <input type="file" id="markFileInput" accept=".xml,.txt,text/xml,application/xml" multiple>
+      </div>
+
+      <label class="fld" for="markDate">ДатаСчФ (проставляется в документ; по умолчанию — из документа или текущая)</label>
+      <input type="text" id="markDate" placeholder="дд.мм.гггг">
+
+      <div class="row" style="margin-top:14px">
+        <button class="btn btn-primary" id="markSvBtn" type="button">СвВыбытияМАРК</button>
+        <button class="btn btn-accent2" id="markDownloadBtn" type="button">↓ Скачать УПД</button>
+        <button class="btn" id="markValidateBtn" type="button">Валидация УПД</button>
+        <button class="btn btn-danger" id="markClearBtn" type="button">✕ Очистить</button>
+      </div>
+
+      <div class="validation-note" style="margin-top:12px;padding:12px 14px;border-radius:var(--radius);background:color-mix(in srgb,var(--coral) 8%,transparent);border:1px solid color-mix(in srgb,var(--coral) 30%,transparent);font-size:12.5px;line-height:1.55">После скачивания готового УПД обязательно проверьте XML на валидность перед отправкой в ЭДО. Сначала скачайте файл, затем нажмите «Валидация УПД» и загрузите полученный XML в сервис проверки Диадок (откроется в новой вкладке).</div>
+      <div id="markStatus" class="status"></div>
+
+      <details style="margin-top:16px;border:1px solid var(--hair);border-radius:var(--radius);padding:12px 14px;background:var(--bg-2)">
+        <summary style="cursor:pointer;font-weight:700;color:var(--text)">Как это работает</summary>
+        <ol style="margin:10px 0 0 20px;line-height:1.6;color:var(--text-3)">
+          <li>Загрузите УПД (XML), при необходимости поправьте <code>ДатаСчФ</code>.</li>
+          <li>Нажмите «СвВыбытияМАРК» — приложение добавит признак и новый UUID.</li>
+          <li>Нажмите «Скачать УПД». Один файл — XML, несколько — ZIP-архив.</li>
+          <li>Проверьте готовый XML кнопкой «Валидация УПД» перед отправкой в ЭДО.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>2. Что будет создано</h3>
+      <div id="markPreview" class="result-list"></div>
+    </div>
+  </div>
+</section>
+
 <!-- ==================== КАК ПОЛЬЗОВАТЬСЯ ==================== -->
 <section class="tab help" id="tab-help">
   <div class="eyebrow">инструкция</div>
@@ -907,6 +980,11 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 </section>
 
 </main>
+
+<footer class="app-footer">
+  <span class="mono">МЕОТИДА · Маркировочный стол · <span id="appVersion"></span></span>
+  <span class="mono credit">Разработано Викторией Саламашко</span>
+</footer>
 
 <div id="toast"></div>
 <div class="imgmodal" id="imgModal" onclick="this.classList.remove('open')"><img id="imgModalImg" src="" alt=""></div>
@@ -2667,6 +2745,193 @@ function readFileAuto(file){
     setTodayDate(advanced.correctionDate);
     renderBasicPreview();
     renderAdvancedDocs();
+
+    // Экспорт утилит для вкладки СвВыбытияМАРК (та же логика UUID/cp1251/ZIP)
+    window.__ukdUtils = {
+      generateUUIDv4, buildNames, stripKnownPrefix, detectEncoding, decodeBytes,
+      encodeText, createZip, downloadBytes, formatDateForFile, setTodayDate,
+      escapeXmlAttr, escapeXmlText, escapeRegExp, escapeHtml, openValidation,
+      transformIdFile: function(text, outputBase){
+        text = text.replace(/(<Файл(?=\s|>)[^>]*\sИдФайл=")([^"]+)(")/i, (f,b,o,a)=>b+outputBase+a);
+        return text;
+      }
+    };
+})();
+</script>
+<script>// ===== Вывод кодов для собственных нужд (СвВыбытияМАРК) =====
+(function(){
+'use strict';
+const M = id => document.getElementById(id);
+let U = null; // __ukdUtils
+const state = { docs: [], processed: null, dateTouched: false };
+
+function buildUpdName(originalName, newUuid){
+  const extM = String(originalName).match(/\.(xml|txt)$/i);
+  const ext = extM ? extM[0] : '';
+  const base = ext ? originalName.slice(0, originalName.length - ext.length) : originalName;
+  const um = base.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  if(!um) return { ok:false, error:'В имени файла не найден UUID в конце имени (нужен формат ..._uuid.xml).' };
+  const oldUuid = um[0].toLowerCase();
+  const outputBase = base.slice(0, um.index) + newUuid;
+  return { ok:true, oldUuid, outputBase, outputFileName: outputBase + '.xml' };
+}
+
+function ensureSvVybytiya(text){
+  const lineEnding = text.includes('\r\n') ? '\r\n' : '\n';
+  const has = /<ТекстИнф(?=[\s/>])[^>]*Идентиф\s*=\s*"СвВыбытияМАРК"[^>]*>/i.test(text)
+           || /<ТекстИнф(?=[\s/>])[^>]*"СвВыбытияМАРК"[^>]*>/i.test(text);
+  if(has){
+    // привести Значен к "3" в обоих возможных порядках атрибутов
+    text = text.replace(/(<ТекстИнф(?=[\s/>])[^>]*Идентиф\s*=\s*"СвВыбытияМАРК"[^>]*?Значен\s*=\s*")([^"]*)(")/i, '$1' + '3' + '$3');
+    text = text.replace(/(<ТекстИнф(?=[\s/>])[^>]*Значен\s*=\s*")([^"]*)("[^>]*Идентиф\s*=\s*"СвВыбытияМАРК")/i, '$1' + '3' + '$3');
+    return { text, added:false };
+  }
+  const insertTag = 'СвВыбытияМАРК';
+  // 1) есть открывающий <ИнфПолФХЖ1 ...> ... </ИнфПолФХЖ1>
+  const openM = text.match(/([ \t]*)<ИнфПолФХЖ1(?=\s|>)[^>]*>/i);
+  const selfM = text.match(/([ \t]*)<ИнфПолФХЖ1([^>]*)\/>/i);
+  if(openM && !/\/>\s*$/.test(openM[0])){
+    // отступ дочерних строк
+    const childM = text.match(/\r?\n([ \t]*)<ТекстИнф(?=\s|>)/i);
+    const indent = childM ? childM[1] : (openM[1] || '') + '  ';
+    const line = `${indent}<ТекстИнф Идентиф="${insertTag}" Значен="3"/>`;
+    const closeRe = /([ \t]*)<\/ИнфПолФХЖ1>/i;
+    if(!closeRe.test(text)) return { text, added:false, error:'Найден <ИнфПолФХЖ1>, но нет закрывающего тега </ИнфПолФХЖ1>.' };
+    text = text.replace(closeRe, (f, ind) => `${line}${lineEnding}${ind}</ИнфПолФХЖ1>`);
+    return { text, added:true };
+  }
+  if(selfM){
+    const ind = selfM[1] || '';
+    const attrs = selfM[2] || '';
+    text = text.replace(/([ \t]*)<ИнфПолФХЖ1([^>]*)\/>/i,
+      `${ind}<ИнфПолФХЖ1${attrs}>${lineEnding}${ind}  <ТекстИнф Идентиф="${insertTag}" Значен="3"/>${lineEnding}${ind}</ИнфПолФХЖ1>`);
+    return { text, added:true };
+  }
+  return { text, added:false, error:'В XML не найден блок <ИнфПолФХЖ1> — некуда добавить СвВыбытияМАРК.' };
+}
+
+function getDataSchF(text){
+  const m = text.match(/<СвСчФакт(?=\s|\/|>)[^>]*\sДатаСчФ\s*=\s*"([^"]*)"/i);
+  return m ? m[1] : '';
+}
+
+function transformUpd(xml, outputBase, dateStr){
+  let text = xml;
+  if(!/<Файл(?=\s|>)/i.test(text)) throw new Error('В XML не найден корневой тег <Файл>.');
+  text = U.transformIdFile(text, outputBase);
+  if(!new RegExp('<Файл(?=\\s|>)[^>]*\\sИдФайл="' + U.escapeRegExp(outputBase) + '"', 'i').test(text))
+    throw new Error('Не удалось заменить ИдФайл внутри XML.');
+  if(dateStr){
+    text = text.replace(/(<СвСчФакт(?=\s|\/|>)[^>]*\sДатаСчФ\s*=\s*")([^"]*)(")/i, (f,b,o,a)=> b + U.escapeXmlAttr(dateStr) + a);
+  }
+  const r = ensureSvVybytiya(text);
+  if(r.error) throw new Error(r.error);
+  return { text: r.text, added: r.added };
+}
+
+function showStatus(type, msg){ const s = M('markStatus'); s.className = 'status show ' + type; s.textContent = msg; }
+function clearStatus(){ const s = M('markStatus'); s.className = 'status'; s.textContent = ''; }
+
+async function setFiles(files){
+  clearStatus();
+  const list = Array.from(files || []).filter(f => /\.(xml|txt)$/i.test(f.name));
+  if(!list.length){ state.docs = []; state.processed = null; showStatus('warn', 'XML-файлы (УПД) не выбраны.'); renderPreview(); return; }
+  M('markDrop').classList.add('loaded');
+  const used = new Set();
+  const docs = [];
+  let firstDate = '';
+  for(const file of list){
+    const newUuid = U.generateUUIDv4(used);
+    try{
+      const names = buildUpdName(file.name, newUuid);
+      if(!names.ok) throw new Error(names.error);
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      const encoding = U.detectEncoding(bytes);
+      const xml = U.decodeBytes(bytes, encoding);
+      if(!firstDate) firstDate = getDataSchF(xml);
+      docs.push({ file, newUuid, names, encoding, xml, ok:true, error:'' });
+    }catch(err){ docs.push({ file, newUuid, ok:false, error: err.message || String(err) }); }
+  }
+  state.docs = docs;
+  state.processed = null;
+  // подставить дату из документа, если пользователь ещё не трогал поле
+  if(!state.dateTouched && firstDate && /^\d{2}\.\d{2}\.\d{4}$/.test(firstDate)) M('markDate').value = firstDate;
+  const good = docs.filter(d => d.ok).length;
+  showStatus(good ? 'ok' : 'warn', `Загружено файлов: ${docs.length}. Готово к обработке: ${good}. Нажмите «СвВыбытияМАРК».`);
+  renderPreview();
+}
+
+function process(){
+  clearStatus();
+  if(!state.docs.length){ showStatus('warn', 'Сначала загрузите один или несколько УПД (XML).'); return false; }
+  const dateStr = String(M('markDate').value || '').trim();
+  if(dateStr && !/^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)){ showStatus('err', 'Дата ДатаСчФ должна быть в формате дд.мм.гггг, например 13.03.2025.'); return false; }
+  const out = [];
+  for(const doc of state.docs){
+    if(!doc.ok){ out.push({ ...doc }); continue; }
+    try{
+      const r = transformUpd(doc.xml, doc.names.outputBase, dateStr);
+      out.push({ ...doc, outputXml: r.text, added: r.added, bytes: U.encodeText(r.text, doc.encoding) });
+    }catch(err){ out.push({ ...doc, ok:false, error: err.message || String(err) }); }
+  }
+  state.processed = out;
+  const okc = out.filter(d => d.ok && d.outputXml).length;
+  const added = out.filter(d => d.added).length;
+  showStatus(okc ? 'ok' : 'err', `Готово: обработано ${okc} файл(ов). СвВыбытияМАРК добавлен в ${added}, уже был в ${okc - added}. Новый UUID проставлен. Нажмите «Скачать УПД».`);
+  renderPreview();
+  return okc > 0;
+}
+
+function download(){
+  if(!state.processed || !state.processed.some(d => d.ok && d.outputXml)){ if(!process()) return; }
+  const ready = state.processed.filter(d => d.ok && d.outputXml);
+  if(!ready.length){ showStatus('err', 'Нет готовых файлов для скачивания.'); return; }
+  if(ready.length === 1){
+    U.downloadBytes(ready[0].bytes, ready[0].names.outputFileName, 'application/xml;charset=windows-1251');
+    showStatus('ok', `Скачан файл: ${ready[0].names.outputFileName}`);
+  } else {
+    const zip = U.createZip(ready.map(d => ({ name: d.names.outputFileName, data: d.bytes })));
+    const zipName = `UPD_SvVybytiyaMARK_${U.formatDateForFile(new Date())}.zip`;
+    U.downloadBytes(zip, zipName, 'application/zip');
+    showStatus('ok', `Скачан архив: ${zipName}. Файлов внутри: ${ready.length}.`);
+  }
+}
+
+function renderPreview(){
+  const box = M('markPreview');
+  if(!state.docs.length){ box.innerHTML = '<div class="hint">Пока файлы не выбраны. После загрузки здесь появятся будущие имена файлов и новые ID.</div>'; return; }
+  const src = state.processed || state.docs;
+  box.innerHTML = src.map(d => {
+    if(!d.ok){ return `<div class="result-item"><strong>${U.escapeHtml(d.file.name)}</strong><span class="badge err">ошибка: ${U.escapeHtml(d.error||'')}</span></div>`; }
+    const badge = d.outputXml ? `<span class="badge ok">${d.added ? 'СвВыбытияМАРК добавлен' : 'СвВыбытияМАРК уже был (=3)'}</span>` : '<span class="badge ok">готов к обработке</span>';
+    return `<div class="result-item"><strong>${U.escapeHtml(d.names.outputFileName)}</strong>
+      <div class="result-meta"><div>Источник: ${U.escapeHtml(d.file.name)}</div>
+      <div>Старый ID: <code>${U.escapeHtml(d.names.oldUuid)}</code></div>
+      <div>Новый ID: <code>${U.escapeHtml(d.newUuid)}</code></div>${badge}</div></div>`;
+  }).join('');
+}
+
+window.__markInit = function(){
+  U = window.__ukdUtils;
+  if(!U){ return; }
+  U.setTodayDate(M('markDate'));
+  M('markDate').addEventListener('input', ()=>{ state.dateTouched = true; });
+  M('markSvBtn').addEventListener('click', process);
+  M('markDownloadBtn').addEventListener('click', download);
+  M('markValidateBtn').addEventListener('click', U.openValidation);
+  M('markClearBtn').addEventListener('click', ()=>{
+    state.docs = []; state.processed = null; state.dateTouched = false;
+    M('markFileInput').value = ''; M('markDrop').classList.remove('loaded');
+    U.setTodayDate(M('markDate')); clearStatus(); renderPreview();
+  });
+  const dz = M('markDrop'), inp = M('markFileInput');
+  inp.addEventListener('change', ()=> setFiles(inp.files));
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e=>{ e.preventDefault(); dz.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e=>{ e.preventDefault(); dz.classList.remove('dragover'); }));
+  dz.addEventListener('drop', e=>{ if(e.dataTransfer.files.length) setFiles(e.dataTransfer.files); });
+  renderPreview();
+};
 })();
 </script>
 <script>// ===== Оболочка: тема, вкладки, универсальная загрузка файлов, Недостача, План/Факт =====
@@ -2708,53 +2973,139 @@ window.showTab = showTab;
 document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click', ()=>showTab(b.dataset.tab)));
 
 /* ---------- УНИВЕРСАЛЬНАЯ ЗАГРУЗКА (txt/xls/xlsx) + ОЧИСТКА ---------- */
-const registeredFields = [];
-async function readAnyToText(file){
-  const name = (file.name||'').toLowerCase();
-  const buf = await file.arrayBuffer();
-  if((name.endsWith('.xls')||name.endsWith('.xlsx')) && window.XLSX){
-    const wb = XLSX.read(new Uint8Array(buf), {type:'array', codepage:1251});
+let registeredFields = [];
+function bytesToText(name, bytes){
+  const n = (name||'').toLowerCase();
+  if((n.endsWith('.xls')||n.endsWith('.xlsx')) && window.XLSX){
+    const wb = XLSX.read(bytes, {type:'array', codepage:1251});
     const ws = wb.Sheets[wb.SheetNames[0]];
     return XLSX.utils.sheet_to_csv(ws, {FS:'\t', blankrows:false, strip:false});
   }
-  const bytes = new Uint8Array(buf);
   let txt = new TextDecoder('utf-8').decode(bytes);
   if(txt.includes('�')){ try{ txt = new TextDecoder('windows-1251').decode(bytes); }catch(e){} }
   return txt;
 }
-function initFields(){
-  document.querySelectorAll('.field[data-field]').forEach(wrap => {
-    const id = wrap.dataset.field;
-    const el = $(id);
-    if(!el) return;
-    const accept = wrap.dataset.accept || '.txt';
-    const label = wrap.dataset.label || '';
-    const plain = wrap.dataset.plain === '1';
-    const onInputExpr = wrap.dataset.oninput || '';
-    registeredFields.push({ id, el, onInputExpr });
-    const tools = document.createElement('div');
-    tools.className = 'field-tools';
-    tools.innerHTML =
-      (label ? `<span class="ft-label">${esc(label)}</span>` : '<span class="ft-label"></span>') +
-      (plain ? '' : `<label class="btn btn-sm uploader">↑ файл<input type="file" accept="${esc(accept)}"></label>`) +
-      `<button type="button" class="btn btn-sm btn-danger ft-clear">✕ очистить</button>`;
-    wrap.insertBefore(tools, el);
-    const fileInput = tools.querySelector('input[type=file]');
-    if(fileInput){
-      fileInput.addEventListener('change', async e => {
-        const f = e.target.files[0]; if(!f) return;
-        try{
-          const text = await readAnyToText(f);
-          el.value = text;
-          fireInput(el, onInputExpr);
-          toast('Загружено: '+f.name);
-        }catch(err){ toast('Не удалось прочитать файл'); }
-        e.target.value = '';
-      });
-    }
-    tools.querySelector('.ft-clear').addEventListener('click', ()=>{ el.value=''; fireInput(el, onInputExpr); });
-  });
+async function readAnyToText(file){
+  const buf = await file.arrayBuffer();
+  return bytesToText(file.name, new Uint8Array(buf));
 }
+function decorateField(wrap){
+  const id = wrap.dataset.field;
+  const el = $(id);
+  if(!el || wrap.dataset.decorated) return;
+  wrap.dataset.decorated = '1';
+  const accept = wrap.dataset.accept || '.txt';
+  const label = wrap.dataset.label || '';
+  const plain = wrap.dataset.plain === '1';
+  const onInputExpr = wrap.dataset.oninput || '';
+  registeredFields.push({ id, el, onInputExpr });
+  const tools = document.createElement('div');
+  tools.className = 'field-tools';
+  tools.innerHTML =
+    (label ? `<span class="ft-label">${esc(label)}</span>` : '<span class="ft-label"></span>') +
+    (plain ? '' : `<label class="btn btn-sm uploader">↑ файл<input type="file" accept="${esc(accept)}"></label>`) +
+    `<button type="button" class="btn btn-sm btn-danger ft-clear">✕ очистить</button>`;
+  wrap.insertBefore(tools, el);
+  const fileInput = tools.querySelector('input[type=file]');
+  if(fileInput){
+    fileInput.addEventListener('change', async e => {
+      const f = e.target.files[0]; if(!f) return;
+      try{ el.value = await readAnyToText(f); fireInput(el, onInputExpr); toast('Загружено: '+f.name); }
+      catch(err){ toast('Не удалось прочитать файл'); }
+      e.target.value = '';
+    });
+  }
+  tools.querySelector('.ft-clear').addEventListener('click', ()=>{ el.value=''; fireInput(el, onInputExpr); });
+  if(onInputExpr){ el.addEventListener('input', ()=>{ try{ (new Function(onInputExpr)).call(window); }catch(e){} }); }
+}
+function initFields(){ document.querySelectorAll('.field[data-field]').forEach(decorateField); }
+
+/* ---- ZIP-распаковка (central directory + DecompressionStream) ---- */
+async function unzipEntries(file){
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const dv = new DataView(buf.buffer);
+  let eocd = -1;
+  for(let i = buf.length - 22; i >= 0 && i > buf.length - 22 - 65536; i--){ if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; } }
+  if(eocd < 0) throw new Error('Это не ZIP или архив повреждён.');
+  const count = dv.getUint16(eocd + 10, true);
+  let off = dv.getUint32(eocd + 16, true);
+  const decU = new TextDecoder('utf-8'), dec1251 = new TextDecoder('windows-1251');
+  const entries = [];
+  for(let n = 0; n < count; n++){
+    if(dv.getUint32(off, true) !== 0x02014b50) break;
+    const flag = dv.getUint16(off + 8, true), method = dv.getUint16(off + 10, true);
+    const compSize = dv.getUint32(off + 20, true);
+    const nameLen = dv.getUint16(off + 28, true), extraLen = dv.getUint16(off + 30, true), commentLen = dv.getUint16(off + 32, true);
+    const localOff = dv.getUint32(off + 42, true);
+    const nameBytes = buf.subarray(off + 46, off + 46 + nameLen);
+    const name = (flag & 0x800) ? decU.decode(nameBytes) : dec1251.decode(nameBytes);
+    const lNameLen = dv.getUint16(localOff + 26, true), lExtraLen = dv.getUint16(localOff + 28, true);
+    const dataStart = localOff + 30 + lNameLen + lExtraLen;
+    entries.push({ name, method, comp: buf.subarray(dataStart, dataStart + compSize) });
+    off += 46 + nameLen + extraLen + commentLen;
+  }
+  const out = [];
+  for(const e of entries){
+    if(e.name.endsWith('/')) continue;
+    let data;
+    if(e.method === 0) data = e.comp;
+    else if(e.method === 8){
+      if(typeof DecompressionStream === 'undefined') throw new Error('Браузер не умеет распаковывать сжатый ZIP — загрузите файлы по отдельности.');
+      const ab = await new Response(new Blob([e.comp]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer();
+      data = new Uint8Array(ab);
+    } else throw new Error('Неизвестный метод сжатия в ZIP.');
+    out.push({ name: e.name.split('/').pop(), data });
+  }
+  return out;
+}
+
+/* ---- «Загрузить все файлы разом» (Недостача) ---- */
+function setNdField(id, text){
+  $(id).value = text;
+  const key = {'in-tamo':'tamoRaw','in-info':'infoRaw','in-sostav':'sostavRaw','in-agg1':'agg1Raw','in-agg2':'agg2Raw','in-miss':'missRaw'}[id];
+  if(key) S[key] = text;
+}
+function routeToStep(name, text){
+  const n = (name||'').toLowerCase();
+  if(/инфопотамо|инфо_?по_?тамо/.test(n)){ setNdField('in-info', text); return 'Инфо по марке'; }
+  if(/составмарки|состав_?марки/.test(n)){ setNdField('in-sostav', text); return 'Состав марки'; }
+  if(/агрегаци[яи]_?1|этап_?1/.test(n)){ setNdField('in-agg1', text); return 'Агрегация 1'; }
+  if(/агрегаци[яи]_?2|этап_?2/.test(n)){ setNdField('in-agg2', text); return 'Агрегация 2'; }
+  if(/отсутств/.test(n)){ setNdField('in-miss', text); return 'Отсутствуют'; }
+  const low = text.toLowerCase();
+  if(low.includes('марка дочерняя 2')){ setNdField('in-sostav', text); return 'Состав марки (по содержимому)'; }
+  if(low.includes('operationtype') && low.includes('parent')){ const id = !S.agg1Raw ? 'in-agg1' : 'in-agg2'; setNdField(id, text); return id==='in-agg1'?'Агрегация 1 (по содержимому)':'Агрегация 2 (по содержимому)'; }
+  if(low.includes('status km') || low.includes('statusex')){ const id = !S.infoRaw ? 'in-info' : 'in-miss'; setNdField(id, text); return id==='in-info'?'Инфо по марке (по содержимому)':'Отсутствуют (по содержимому)'; }
+  const first = (text.trim().split(/\r?\n/)[0]||'');
+  if(/^0(10401292285|40129228510)/.test(first)){ setNdField('in-tamo', text); return 'Коды письма'; }
+  return null;
+}
+async function loadAllNdFiles(fileList){
+  const files = Array.from(fileList || []);
+  if(!files.length) return;
+  const items = [];
+  try{
+    for(const f of files){
+      if(/\.zip$/i.test(f.name)){ for(const e of await unzipEntries(f)) items.push({ name:e.name, text: bytesToText(e.name, e.data) }); }
+      else items.push({ name:f.name, text: await readAnyToText(f) });
+    }
+  }catch(err){ $('ndAllMsg').innerHTML = `<div class="alert alert-warn">${esc(err.message||'Ошибка чтения файла')}</div>`; return; }
+  let routed = 0; const log = [];
+  for(const it of items){ const step = routeToStep(it.name, it.text); if(step){ routed++; log.push('✓ ' + step + ' ← ' + it.name); } else log.push('? не распознан ← ' + it.name); }
+  // синхронизировать textarea-состояние в S уже сделано в setNdField; обновить видимые поля-tools не нужно
+  recompute();
+  $('ndAllMsg').innerHTML = `<div class="alert" style="border:1px solid var(--hair);border-left:2px solid var(--emerald);color:var(--emerald)">Разложено файлов: <b>${routed}</b> из ${items.length}.<br><span class="mini">${log.map(esc).join('<br>')}</span></div>`;
+}
+function renderAllNames(){
+  const box = $('allNamesBox');
+  if(!R || !R.baseName){ box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  const nm = fileNamesNow();
+  const rows = [['Шаг 2 · Инфо', nm.info],['Шаг 3 · Состав', nm.sostav],['Шаг 4 · Агрег.1', nm.agg1],['Шаг 5 · Агрег.2', nm.agg2],['Шаг 7 · Отсут.', nm.miss]];
+  $('allNamesList').innerHTML = rows.map(r => `<div class="all-name-row"><span class="an-step">${esc(r[0])}</span><span class="an-name">${esc(r[1])}</span><button class="btn btn-sm" data-copy="${esc(r[1])}">📋</button></div>`).join('');
+}
+function copyAllNames(btn){ if(!R || !R.baseName){ toast('Сначала вставьте «Инфо по марке» (шаг 2)'); return; } const nm = fileNamesNow(); copyText([nm.info, nm.sostav, nm.agg1, nm.agg2, nm.miss].join('\n'), btn); }
+window.copyAllNames = copyAllNames;
 function fireInput(el, expr){
   el.dispatchEvent(new Event('input', {bubbles:true}));
   if(expr){ try{ (new Function(expr)).call(window); }catch(e){} }
@@ -2765,11 +3116,11 @@ function clearAllFields(){
   // Недостача — сбросить состояние
   S = { tamoRaw:'',infoRaw:'',sostavRaw:'',agg1Raw:'',agg2Raw:'',missRaw:'',selectedBox:'',ts:'' };
   ['in-tamo','in-info','in-sostav','in-agg1','in-agg2','in-miss'].forEach(id=>{ if($(id)) $(id).value=''; });
+  if($('ndAllMsg')) $('ndAllMsg').innerHTML='';
   recompute();
-  // План/Факт
-  if($('pf-stats')) $('pf-stats').style.display='none';
-  if($('pf-result-wrap')) $('pf-result-wrap').style.display='none';
-  pfCount('plan'); pfCount('fact');
+  // План/Факт — оставить один пустой блок
+  $('pfList').innerHTML=''; pfUnitSeq=0; pfAdd();
+  registeredFields = registeredFields.filter(f => document.body.contains(f.el));
   // GTIN — очистить видимые результаты (базу не трогаем)
   ['gtinSearchRes','gtinUpMsg','gtinAnalysisRes'].forEach(id=>{ if($(id)) $(id).innerHTML=''; });
   toast('Все поля очищены');
@@ -2798,7 +3149,7 @@ window.planBlocksText=planBlocksText; window.factBlocksText=factBlocksText; wind
 function setStatus(id, cls, text){ const el=$(id); el.className='step-status '+cls; el.textContent=text; }
 function chipsHtml(arr){ return arr.map(c=>`<span class="chip ${c.cls||''}">${c.html}</span>`).join(''); }
 
-function renderAll(){ renderStep1();renderStep2();renderStep3();renderStep4();renderStep5();renderResult();renderStep7();renderLetter(); }
+function renderAll(){ renderStep1();renderStep2();renderStep3();renderStep4();renderStep5();renderResult();renderStep7();renderLetter();renderAllNames(); }
 
 function renderStep1(){
   if(!S.tamoRaw.trim()){ setStatus('st1','st-idle','ждёт вставки'); $('tamo-stats').innerHTML=''; return; }
@@ -2967,47 +3318,119 @@ function importSessions(input){ const f=input.files[0]; if(!f) return; const r=n
 window.importSessions=importSessions;
 
 /* ---------- связь Недостача → План/Факт ---------- */
-function sendToPF(){ if(!R||!R.planBlocks.length){ toast('Сначала вставьте «Состав марки» (шаг 3)'); return; } $('pf-plan').value=planBlocksText(); $('pf-fact').value=factBlocksText(); pfCount('plan'); pfCount('fact'); showTab('pf'); pfCompare(); }
+function sendToPF(){ if(!R||!R.planBlocks.length){ toast('Сначала вставьте «Состав марки» (шаг 3)'); return; } $('pf-plan-0').value=planBlocksText(); $('pf-fact-0').value=factBlocksText(); pfCount(0,'plan'); pfCount(0,'fact'); showTab('pf'); pfCompare(0); }
 window.sendToPF=sendToPF;
 
 /* ============================================================
-   ПЛАН / ФАКТ
+   ПЛАН / ФАКТ (несколько сравнений на одном экране)
    ============================================================ */
-function pfCount(which){ const codes=parseCodesList($('pf-'+which).value); $('cnt-'+which).textContent=codes.length+' строк'; }
-window.pfCount=pfCount;
-function pfCompare(){
-  const plan=parseCodesList($('pf-plan').value), factList=parseCodesList($('pf-fact').value);
-  const fact=new Set(factList), planSet=new Set(plan);
-  const missing=plan.filter(c=>!fact.has(c)), extra=factList.filter(c=>!planSet.has(c));
-  $('pf-s-plan').textContent=plan.length; $('pf-s-fact').textContent=fact.size;
-  $('pf-s-diff').textContent=missing.length; $('pf-s-diff').className='num '+(missing.length?'danger':'ok');
-  $('pf-s-extra').textContent=extra.length;
-  $('pf-stats').style.display='grid';
-  $('pf-result').value=missing.join('\n'); $('pf-result-wrap').style.display='block';
-  $('pf-extra').value=extra.join('\n'); $('pf-extra-wrap').style.display=extra.length?'block':'none';
+let pfUnitSeq = 0;
+function pfUnitHtml(i){
+  return `<div class="card pf-unit" id="pf-unit-${i}">
+    <div class="pf-grid">
+      <div>
+        <div class="pane-head"><span class="pane-label accent2">ПЛАН</span><span class="pane-count" id="cnt-plan-${i}">0 строк</span></div>
+        <div class="field" data-field="pf-plan-${i}" data-accept=".txt,.xls,.xlsx,.csv" data-label="План" data-oninput="pfCount(${i},'plan')">
+          <textarea id="pf-plan-${i}" placeholder="Вставьте коды плана (по одному на строку)…" style="min-height:200px"></textarea>
+        </div>
+      </div>
+      <div>
+        <div class="pane-head"><span class="pane-label accent">ФАКТ</span><span class="pane-count" id="cnt-fact-${i}">0 строк</span></div>
+        <div class="field" data-field="pf-fact-${i}" data-accept=".txt,.xls,.xlsx,.csv" data-label="Факт" data-oninput="pfCount(${i},'fact')">
+          <textarea id="pf-fact-${i}" placeholder="Вставьте коды факта (по одному на строку)…" style="min-height:200px"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin:12px 0 0">
+      <button class="btn btn-primary" onclick="pfCompare(${i})">Найти расхождения</button>
+      <button class="btn" onclick="pfClearUnit(${i})">Очистить</button>
+      <button class="btn btn-danger pf-remove" onclick="pfRemove(${i})" style="display:${i===0?'none':'inline-flex'}">✕ Удалить это сравнение</button>
+    </div>
+    <div class="stat-strip" id="pf-stats-${i}" style="display:none;margin-top:14px">
+      <div class="stat"><div class="num" id="pf-s-plan-${i}">0</div><div class="lbl">план</div></div>
+      <div class="stat"><div class="num accent" id="pf-s-fact-${i}">0</div><div class="lbl">факт</div></div>
+      <div class="stat"><div class="num danger" id="pf-s-diff-${i}">0</div><div class="lbl">расхождений</div></div>
+      <div class="stat"><div class="num accent2" id="pf-s-extra-${i}">0</div><div class="lbl">лишних в факте</div></div>
+    </div>
+    <div id="pf-result-wrap-${i}" style="display:none;margin-top:12px">
+      <div class="pane-head"><span class="pane-label" style="color:var(--coral)">Отсутствуют в факте</span>
+        <button class="btn btn-sm" onclick="copyText(document.getElementById('pf-result-${i}').value, this)">📋 Скопировать</button></div>
+      <textarea id="pf-result-${i}" readonly style="min-height:150px;color:var(--coral)"></textarea>
+      <div id="pf-extra-wrap-${i}" style="display:none">
+        <div class="pane-head" style="margin-top:12px"><span class="pane-label accent2">Есть в факте, но нет в плане</span>
+          <button class="btn btn-sm" onclick="copyText(document.getElementById('pf-extra-${i}').value, this)">📋 Скопировать</button></div>
+        <textarea id="pf-extra-${i}" readonly style="min-height:110px;color:var(--accent-2)"></textarea>
+      </div>
+    </div>
+  </div>`;
 }
-window.pfCompare=pfCompare;
-function pfClear(){ ['pf-plan','pf-fact','pf-result','pf-extra'].forEach(id=>$(id).value=''); pfCount('plan'); pfCount('fact'); $('pf-stats').style.display='none'; $('pf-result-wrap').style.display='none'; }
-window.pfClear=pfClear;
+function pfAdd(){
+  const i = pfUnitSeq++;
+  const div = document.createElement('div');
+  div.innerHTML = pfUnitHtml(i);
+  const unit = div.firstElementChild;
+  $('pfList').appendChild(unit);
+  unit.querySelectorAll('.field[data-field]').forEach(decorateField);
+  return i;
+}
+window.pfAdd = pfAdd;
+function pfCount(i, which){ const el = $('pf-'+which+'-'+i); if(!el) return; $('cnt-'+which+'-'+i).textContent = parseCodesList(el.value).length + ' строк'; }
+window.pfCount = pfCount;
+function pfCompare(i){
+  const plan = parseCodesList($('pf-plan-'+i).value), factList = parseCodesList($('pf-fact-'+i).value);
+  const fact = new Set(factList), planSet = new Set(plan);
+  const missing = plan.filter(c => !fact.has(c)), extra = factList.filter(c => !planSet.has(c));
+  $('pf-s-plan-'+i).textContent = plan.length; $('pf-s-fact-'+i).textContent = fact.size;
+  $('pf-s-diff-'+i).textContent = missing.length; $('pf-s-diff-'+i).className = 'num ' + (missing.length ? 'danger' : 'ok');
+  $('pf-s-extra-'+i).textContent = extra.length;
+  $('pf-stats-'+i).style.display = 'grid';
+  $('pf-result-'+i).value = missing.join('\n'); $('pf-result-wrap-'+i).style.display = 'block';
+  $('pf-extra-'+i).value = extra.join('\n'); $('pf-extra-wrap-'+i).style.display = extra.length ? 'block' : 'none';
+}
+window.pfCompare = pfCompare;
+function pfCountBoth(i){ pfCount(i,'plan'); pfCount(i,'fact'); }
+function pfClearUnit(i){ ['pf-plan-'+i,'pf-fact-'+i,'pf-result-'+i,'pf-extra-'+i].forEach(id=>{ if($(id)) $(id).value=''; }); pfCountBoth(i); $('pf-stats-'+i).style.display='none'; $('pf-result-wrap-'+i).style.display='none'; }
+window.pfClearUnit = pfClearUnit;
+function pfRemove(i){ const u = $('pf-unit-'+i); if(u) u.remove(); registeredFields = registeredFields.filter(f => document.body.contains(f.el)); }
+window.pfRemove = pfRemove;
 
-/* ---------- report copy delegation ---------- */
-$('resultCard').addEventListener('click', e=>{ const b=e.target.closest('[data-copy]'); if(b) copyText(b.getAttribute('data-copy').replace(/\\n/g,'\n'), b); });
+/* ---------- copy delegation по всей вкладке Недостача ---------- */
+$('tab-nd').addEventListener('click', e=>{ const b=e.target.closest('[data-copy]'); if(b) copyText(b.getAttribute('data-copy').replace(/\\n/g,'\n'), b); });
+
+/* ---------- версия / автор ---------- */
+const APP_VERSION = 'v2';
+const APP_DATE = '16.07.2026';
+(function renderVersion(){
+  if($('appVersion')) $('appVersion').textContent = APP_VERSION + ' · ' + APP_DATE;
+  const chip = document.createElement('span');
+  chip.className = 'verchip';
+  chip.textContent = APP_VERSION + ' · ' + APP_DATE;
+  const actions = document.querySelector('.topbar-actions');
+  if(actions) actions.insertBefore(chip, actions.firstChild);
+})();
 
 /* ---------- init ---------- */
 initFields();
+pfAdd(); // первый блок План/Факт
+$('ndAllInput').addEventListener('change', e=>{ loadAllNdFiles(e.target.files); e.target.value=''; });
+(function ndAllDrop(){
+  const dz = $('ndAllDrop');
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{ e.preventDefault(); dz.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{ e.preventDefault(); dz.classList.remove('dragover'); }));
+  dz.addEventListener('drop', e=>{ if(e.dataTransfer.files.length) loadAllNdFiles(e.dataTransfer.files); });
+})();
 ['in-tamo','in-info','in-sostav','in-agg1','in-agg2','in-miss'].forEach((id,i)=>{
   const key=['tamoRaw','infoRaw','sostavRaw','agg1Raw','agg2Raw','missRaw'][i];
   $(id).addEventListener('input', ()=>{ S[key]=$(id).value; scheduleRecalc(); });
 });
 $('mailTo').addEventListener('input', saveDraft);
 $('mailSubj').addEventListener('input', saveDraft);
-$('pf-plan').addEventListener('input', ()=>pfCount('plan'));
-$('pf-fact').addEventListener('input', ()=>pfCount('fact'));
 
 document.querySelectorAll('#tab-help img.shot').forEach(img=>img.addEventListener('click', ()=>{ $('imgModalImg').src=img.src; $('imgModal').classList.add('open'); }));
 
 (function initND(){ let draft=null; try{draft=JSON.parse(localStorage.getItem(LS_DRAFT));}catch(e){} applySnapshot(draft||{}); renderSessions(); })();
 if(window.__gtinInit) window.__gtinInit();
+if(window.__markInit) window.__markInit();
 })();
 </script>
 </body>
