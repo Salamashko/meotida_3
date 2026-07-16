@@ -857,7 +857,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 <section class="tab" id="tab-mark">
   <div class="eyebrow">ЭДО · вывод из оборота для собственных нужд</div>
   <h1 class="tab-title">Вывод кодов <span class="accent">(СвВыбытияМАРК)</span></h1>
-  <p class="tab-lede">Добавляет в УПД признак вывода из оборота для собственных нужд — <code>&lt;ТекстИнф Идентиф="СвВыбытияМАРК" Значен="3"/&gt;</code> в блок <code>ИнфПолФХЖ1</code>, проставляет новый UUID v4 (в имени файла и в <code>ИдФайл</code>) и, при необходимости, дату <code>ДатаСчФ</code>. Работает локально, ничего не отправляет.</p>
+  <p class="tab-lede">Добавляет в УПД признак вывода из оборота для собственных нужд — <code>&lt;ТекстИнф Идентиф="СвВыбытияМАРК" Значен="3"/&gt;</code> в блок <code>ИнфПолФХЖ1</code>, проставляет новый UUID v4 (в имени файла и в <code>ИдФайл</code>) и, при необходимости, дату счёта-фактуры (<code>ДатаСчФ</code> или <code>ДатаДок</code>). Работает локально, ничего не отправляет.</p>
 
   <div class="grid2" style="align-items:start">
     <div class="card">
@@ -868,7 +868,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
         <input type="file" id="markFileInput" accept=".xml,.txt,text/xml,application/xml" multiple>
       </div>
 
-      <label class="fld" for="markDate">ДатаСчФ (проставляется в документ; по умолчанию — из документа или текущая)</label>
+      <label class="fld" for="markDate">Дата счёта-фактуры — ДатаСчФ / ДатаДок (проставляется в документ; по умолчанию — из документа или текущая)</label>
       <input type="text" id="markDate" placeholder="дд.мм.гггг">
 
       <div class="row" style="margin-top:14px">
@@ -2817,8 +2817,13 @@ function ensureSvVybytiya(text){
   return { text, added:false, error:'В XML не найден блок <ИнфПолФХЖ1> — некуда добавить СвВыбытияМАРК.' };
 }
 
-function getDataSchF(text){
-  const m = text.match(/<СвСчФакт(?=\s|\/|>)[^>]*\sДатаСчФ\s*=\s*"([^"]*)"/i);
+// Дата счёта-фактуры: у одной формы УПД это ДатаСчФ, у другой (СЧФДОП) — ДатаДок
+// на теге <СвСчФакт>. Ведущий \s гарантирует, что ДатаДок — самостоятельный
+// атрибут, а не часть РеквДатаДок (её не трогаем).
+function getDocDate(text){
+  let m = text.match(/<СвСчФакт(?=\s|\/|>)[^>]*\sДатаСчФ\s*=\s*"([^"]*)"/i);
+  if(m) return m[1];
+  m = text.match(/<СвСчФакт(?=\s|\/|>)[^>]*\sДатаДок\s*=\s*"([^"]*)"/i);
   return m ? m[1] : '';
 }
 
@@ -2828,12 +2833,14 @@ function transformUpd(xml, outputBase, dateStr){
   text = U.transformIdFile(text, outputBase);
   if(!new RegExp('<Файл(?=\\s|>)[^>]*\\sИдФайл="' + U.escapeRegExp(outputBase) + '"', 'i').test(text))
     throw new Error('Не удалось заменить ИдФайл внутри XML.');
+  let dateSet = false;
   if(dateStr){
-    text = text.replace(/(<СвСчФакт(?=\s|\/|>)[^>]*\sДатаСчФ\s*=\s*")([^"]*)(")/i, (f,b,o,a)=> b + U.escapeXmlAttr(dateStr) + a);
+    text = text.replace(/(<СвСчФакт(?=\s|\/|>)[^>]*\sДатаСчФ\s*=\s*")([^"]*)(")/i, (f,b,o,a)=>{ dateSet = true; return b + U.escapeXmlAttr(dateStr) + a; });
+    text = text.replace(/(<СвСчФакт(?=\s|\/|>)[^>]*\sДатаДок\s*=\s*")([^"]*)(")/i, (f,b,o,a)=>{ dateSet = true; return b + U.escapeXmlAttr(dateStr) + a; });
   }
   const r = ensureSvVybytiya(text);
   if(r.error) throw new Error(r.error);
-  return { text: r.text, added: r.added };
+  return { text: r.text, added: r.added, dateSet };
 }
 
 function showStatus(type, msg){ const s = M('markStatus'); s.className = 'status show ' + type; s.textContent = msg; }
@@ -2856,7 +2863,7 @@ async function setFiles(files){
       const bytes = new Uint8Array(buffer);
       const encoding = U.detectEncoding(bytes);
       const xml = U.decodeBytes(bytes, encoding);
-      if(!firstDate) firstDate = getDataSchF(xml);
+      if(!firstDate) firstDate = getDocDate(xml);
       docs.push({ file, newUuid, names, encoding, xml, ok:true, error:'' });
     }catch(err){ docs.push({ file, newUuid, ok:false, error: err.message || String(err) }); }
   }
@@ -2873,19 +2880,22 @@ function process(){
   clearStatus();
   if(!state.docs.length){ showStatus('warn', 'Сначала загрузите один или несколько УПД (XML).'); return false; }
   const dateStr = String(M('markDate').value || '').trim();
-  if(dateStr && !/^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)){ showStatus('err', 'Дата ДатаСчФ должна быть в формате дд.мм.гггг, например 13.03.2025.'); return false; }
+  if(dateStr && !/^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)){ showStatus('err', 'Дата должна быть в формате дд.мм.гггг, например 13.07.2026.'); return false; }
   const out = [];
   for(const doc of state.docs){
     if(!doc.ok){ out.push({ ...doc }); continue; }
     try{
       const r = transformUpd(doc.xml, doc.names.outputBase, dateStr);
-      out.push({ ...doc, outputXml: r.text, added: r.added, bytes: U.encodeText(r.text, doc.encoding) });
+      out.push({ ...doc, outputXml: r.text, added: r.added, dateSet: r.dateSet, bytes: U.encodeText(r.text, doc.encoding) });
     }catch(err){ out.push({ ...doc, ok:false, error: err.message || String(err) }); }
   }
   state.processed = out;
   const okc = out.filter(d => d.ok && d.outputXml).length;
   const added = out.filter(d => d.added).length;
-  showStatus(okc ? 'ok' : 'err', `Готово: обработано ${okc} файл(ов). СвВыбытияМАРК добавлен в ${added}, уже был в ${okc - added}. Новый UUID проставлен. Нажмите «Скачать УПД».`);
+  const dated = out.filter(d => d.dateSet).length;
+  let dateNote = '';
+  if(dateStr) dateNote = dated ? ` Дата ${dateStr} проставлена (${dated}).` : ' Поле даты (ДатаСчФ/ДатаДок) в документе не найдено — дата не менялась.';
+  showStatus(okc ? 'ok' : 'err', `Готово: обработано ${okc} файл(ов). СвВыбытияМАРК добавлен в ${added}, уже был в ${okc - added}. Новый UUID проставлен.${dateNote} Нажмите «Скачать УПД».`);
   renderPreview();
   return okc > 0;
 }
@@ -3405,7 +3415,7 @@ window.pfRemove = pfRemove;
 $('tab-nd').addEventListener('click', e=>{ const b=e.target.closest('[data-copy]'); if(b) copyText(b.getAttribute('data-copy').replace(/\\n/g,'\n'), b); });
 
 /* ---------- версия / автор (в шапке) ---------- */
-const APP_VERSION = 'v4';
+const APP_VERSION = 'v5';
 const APP_DATE = '16.07.2026';
 (function renderVersion(){
   const el = $('appCredit');
