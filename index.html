@@ -758,6 +758,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
   <div class="eyebrow">ЭДО · корректировочные документы</div>
   <h1 class="tab-title">Конвертер <span class="accent">УКД → иУКД</span></h1>
   <p class="tab-lede">Создаёт иУКД из УКД: меняет ID (новый UUID v4 в имени и в ИдФайл), добавляет строку исправления ИспрКСчФ. Во второй вкладке можно править цены, суммы, реквизиты и коды маркировки. Работает локально, ничего не отправляет.</p>
+  <p class="tab-lede" style="color:var(--coral)"><strong>Важно:</strong> вкладка «УКД → иУКД» (быстро) <strong>НЕ пересчитывает цены и суммы</strong> — только меняет ID и добавляет ИспрКСчФ. Чтобы поменять цены/суммы (например, из PDF с верными значениями), используйте вкладку <strong>«УКД → иУКД (цены и коды)»</strong> и подгрузите туда PDF.</p>
   <div class="ukd-sub">
     <button class="ukd-tab active" type="button" data-tab="basicPanel">УКД → иУКД</button>
     <button class="ukd-tab" type="button" data-tab="advancedPanel">УКД → иУКД (цены и коды)</button>
@@ -766,6 +767,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
       <section class="panel-head">
         <h3>УКД → иУКД</h3>
         <p>Загрузи один или несколько XML-файлов УКД. Приложение создаст новые XML-файлы: с новым UUID v4 в имени файла и в атрибуте <code>ИдФайл</code>, а также добавит строку <code>ИспрКСчФ</code> после строки <code>СчФ</code>.</p>
+        <p style="color:var(--coral);margin-top:8px"><strong>Эта вкладка не меняет цены и суммы товаров.</strong> Если в УКД нужно пересчитать цены/стоимость/НДС (например, по PDF с верными значениями) — перейдите на вкладку <strong>«УКД → иУКД (цены и коды)»</strong>.</p>
       </section>
 
       <section class="grid">
@@ -2692,6 +2694,25 @@ function readFileAuto(file){
       else showStatus(advanced, 'ok', `Загружено файлов: ${docs.length}. Поля товаров готовы для изменения.`);
     }
 
+    // Подсчёт «проблемных» товаров относительно плана из PDF:
+    //   unmatched — товар в УКД не сопоставлен со строкой источника (план пуст);
+    //   pending   — сопоставлен, но в DOM ещё есть расхождения с планом (правка не применена).
+    // Возвращает null, если источник не загружен (проверять нечего).
+    function auditCorrectSumsPlan() {
+      if (!correctSums.parsed || !correctSums.docsPlan.length) return null;
+      let unmatched = 0, pending = 0;
+      correctSums.docsPlan.forEach((dp, di) => {
+        const doc = advanced.docs[di];
+        if (!doc) return;
+        dp.perProduct.forEach(({ pIndex, matched, plan }) => {
+          if (!matched) { unmatched++; return; }
+          const diffs = computeDiffs(doc, di, pIndex, plan);
+          if (diffs.length) pending++;
+        });
+      });
+      return { unmatched, pending };
+    }
+
     async function processAdvancedDownload() {
       try {
         clearStatus(advanced);
@@ -2699,6 +2720,20 @@ function readFileAuto(file){
         if (!advanced.docs.length) throw new Error('Сначала загрузи один или несколько XML-файлов.');
         const bad = advanced.docs.find(doc => !doc.ok);
         if (bad) throw new Error(`Файл не готов к обработке: ${bad.file.name}. ${bad.error}`);
+
+        // Защита от скачивания непересчитанного иУКД: если загружен PDF, но часть правок
+        // ещё не применена (или товары не сопоставлены) — уточняем у пользователя.
+        const audit = auditCorrectSumsPlan();
+        if (audit && (audit.pending > 0 || audit.unmatched > 0)) {
+          const parts = [];
+          if (audit.pending) parts.push('у ' + audit.pending + ' тов. не применены цены/суммы из источника');
+          if (audit.unmatched) parts.push(audit.unmatched + ' тов. не сопоставлены с источником');
+          const msg = 'Внимание: ' + parts.join(', ') + '.\n\nOK — применить всё доступное и скачать.\nОтмена — скачать как есть (без пересчёта).';
+          if (confirm(msg)) {
+            advanced.docs.forEach((_, di) => { applyTotalsPlan(di); applyAllProductPlans(di); });
+            renderCorrectSumBadges();
+          }
+        }
 
         advanced.downloadBtn.disabled = true;
         advanced.downloadBtn.textContent = 'Готовлю файлы...';
@@ -3249,6 +3284,34 @@ function readFileAuto(file){
       return n;
     }
 
+    // Применить план одного товара (из correctSums.docsPlan) в DOM-поля.
+    // Возвращает число записанных полей (0, если товар не сопоставлен).
+    function applyProductPlan(docIndex, pIndex) {
+      const dp = correctSums.docsPlan[docIndex];
+      const prod = dp && dp.perProduct.find(x => x.pIndex === pIndex);
+      if (!prod || !prod.matched) return 0;
+      let n = 0;
+      Object.entries(prod.plan).forEach(([key, val]) => {
+        const [group, name] = key.split('__');
+        const id = fieldId(docIndex, group, pIndex, name);
+        const el = document.querySelector('[data-field-id="' + cssEsc(id) + '"]');
+        if (el) { el.value = val; n++; }
+      });
+      return n;
+    }
+
+    // Применить планы всех сопоставленных товаров документа. Возвращает кол-во затронутых товаров.
+    function applyAllProductPlans(docIndex) {
+      const dp = correctSums.docsPlan[docIndex];
+      if (!dp) return 0;
+      let touched = 0;
+      dp.perProduct.forEach(({ pIndex, matched }) => {
+        if (!matched) return;
+        if (applyProductPlan(docIndex, pIndex) > 0) touched++;
+      });
+      return touched;
+    }
+
     async function handleCorrectSumsFile(file) {
       if (!file) return;
       if (!advanced.docs.length) { showStatus(advanced, 'warn', 'Сначала загрузите XML УКД выше, потом — файл с верными суммами.'); return; }
@@ -3267,11 +3330,17 @@ function readFileAuto(file){
         // итоги применяем сразу (это суммы, а не товары — расхождений по сути нет)
         let totApplied = 0;
         advanced.docs.forEach((_, di) => { totApplied += applyTotalsPlan(di); });
+        // цены/суммы товаров — тоже применяем сразу ко всем сопоставленным,
+        // иначе пользователь видит «итоги подставлены», нажимает «Скачать» и получает
+        // непересчитанный XML. Плашки «Показать разницу/Применить» остаются для контроля.
+        let productsApplied = 0;
+        advanced.docs.forEach((_, di) => { productsApplied += applyAllProductPlans(di); });
         renderCorrectSumBadges();
         showStatus(advanced, 'ok',
           'Источник прочитан: товаров ' + parsed.products.length + ', сопоставлено с УКД ' + matched +
           (totApplied ? ', итоги подставлены (' + totApplied + ').' : '.') +
-          ' Проверьте плашки у товаров и примените изменения.');
+          (productsApplied ? ' Цены/суммы подставлены в ' + productsApplied + ' тов.' + (matched > productsApplied ? ', ' + (matched - productsApplied) + ' не обновлены.' : '.') : '') +
+          ' Проверьте плашки у товаров и при необходимости поправьте вручную.');
       } catch (err) {
         showStatus(advanced, 'err', 'Ошибка чтения источника: ' + (err.message || err));
       } finally {
@@ -3304,16 +3373,8 @@ function readFileAuto(file){
         const applyProd = t.dataset.applyProduct;
         if (applyProd) {
           const [di, pi] = applyProd.split('_').map(Number);
-          const dp = correctSums.docsPlan[di];
-          const prod = dp && dp.perProduct.find(x => x.pIndex === pi);
-          if (prod) {
-            let n = 0;
-            Object.entries(prod.plan).forEach(([key, val]) => {
-              const [group, name] = key.split('__');
-              const id = fieldId(di, group, pi, name);
-              const el = document.querySelector('[data-field-id="' + cssEsc(id) + '"]');
-              if (el) { el.value = val; n++; }
-            });
+          const n = applyProductPlan(di, pi);
+          if (n > 0) {
             showStatus(advanced, 'ok', 'Применено полей к товару ' + (pi + 1) + ': ' + n + '.');
             renderCorrectSumBadges();
           }
