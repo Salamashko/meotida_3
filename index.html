@@ -3073,24 +3073,57 @@ function readFileAuto(file){
       }
       return items;
     }
+    // withTimeout — страховка от зависаний сети: любой промис, который не
+    // ответил за ms, считается сбойным (иначе кнопка «Читаю источник…» может
+    // висеть бесконечно, если CDN держит соединение открытым, но не отвечает).
+    function withTimeout(promise, ms, message) {
+      let timer;
+      const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), ms); });
+      return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+    }
+    function loadTesseractFrom(src) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        // onload срабатывает даже если сеть/блокировщик подменил ответ пустышкой —
+        // проверяем, что window.Tesseract реально появился, иначе дальше упадёт
+        // с непонятной "Cannot read properties of undefined (reading 'recognize')".
+        s.onload = () => {
+          if (window.Tesseract && typeof window.Tesseract.recognize === 'function') resolve(window.Tesseract);
+          else reject(new Error('Скрипт OCR загрузился, но не инициализировался (похоже, заблокирован сетью или блокировщиком рекламы): ' + src));
+        };
+        s.onerror = () => reject(new Error('Не удалось загрузить OCR-движок с ' + src));
+        document.head.appendChild(s);
+      });
+    }
     let __tessPromise = null;
     function loadTesseract() {
       if (window.Tesseract) return Promise.resolve(window.Tesseract);
       if (__tessPromise) return __tessPromise;
-      __tessPromise = new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-        s.onload = () => resolve(window.Tesseract);
-        s.onerror = () => { __tessPromise = null; reject(new Error('Не удалось загрузить OCR-движок (tesseract.js). Нужен интернет для сканов/фото.')); };
-        document.head.appendChild(s);
-      });
+      const mirrors = [
+        'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js',
+        'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js'
+      ];
+      __tessPromise = (async () => {
+        let lastErr = null;
+        for (const src of mirrors) {
+          try { return await withTimeout(loadTesseractFrom(src), 20000, 'Таймаут загрузки OCR-движка (20с): ' + src); }
+          catch (e) { lastErr = e; }
+        }
+        throw new Error('Не удалось загрузить OCR-движок (tesseract.js) ни с одного источника. Нужен интернет для сканов/фото; проверьте блокировщики рекламы и сетевые ограничения. ' + (lastErr ? lastErr.message : ''));
+      })();
+      __tessPromise.catch(() => { __tessPromise = null; }); // не кэшируем провал — следующая попытка пробует снова
       return __tessPromise;
     }
     async function itemsFromImage(blob) {
       const Tesseract = await loadTesseract();
       const url = URL.createObjectURL(blob);
       try {
-        const { data } = await Tesseract.recognize(url, 'rus+eng', { logger: () => {} });
+        const { data } = await withTimeout(
+          Tesseract.recognize(url, 'rus+eng', { logger: () => {} }),
+          90000,
+          'OCR не ответил за 90с — прервано. Попробуйте изображение меньшего размера/лучшего качества либо PDF с текстовым слоем.'
+        );
         const words = (data && data.words) || [];
         return words.map(w => ({ str: w.text, x: w.bbox.x0, y: w.bbox.y0, width: w.bbox.x1 - w.bbox.x0 }));
       } finally { URL.revokeObjectURL(url); }
@@ -3336,7 +3369,10 @@ function readFileAuto(file){
       wrap.classList.add('loading');
       showStatus(advanced, 'ok', 'Читаю источник…');
       try {
-        const parsed = await extractCorrectSums(file);
+        // Общая страховка сверху: что бы ни зависло внутри (сеть OCR, разбор PDF),
+        // через 6 минут показываем понятную ошибку вместо бесконечной надписи «Читаю источник…».
+        const parsed = await withTimeout(extractCorrectSums(file), 360000,
+          'Обработка файла не завершилась за 6 минут — прервано. Похоже на проблему сети (для OCR сканов/фото нужен интернет) либо слишком большой/сложный файл.');
         if (parsed.error) throw new Error(parsed.error);
         correctSums.parsed = parsed;
         if (!parsed.products.length) throw new Error('В источнике не найдено ни одной строки товара (До/После). Проверьте, что это печатная форма УКД.');
