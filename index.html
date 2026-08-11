@@ -3083,16 +3083,27 @@ function readFileAuto(file){
     }
     function loadTesseractFrom(src) {
       return new Promise((resolve, reject) => {
+        // Настоящая причина "загрузился, но не инициализировался": выше по странице
+        // шим pdf.js навсегда оставляет window.module/exports/require (чтобы UMD-сборка
+        // pdf.js не упала с ReferenceError). Из-за этих же глобальных переменных UMD-обёртка
+        // tesseract.js думает, что она в CommonJS/Node, и пишет себя в module.exports —
+        // а window.Tesseract так и остаётся undefined. Прячем шим только на время
+        // загрузки и выполнения tesseract.js, потом возвращаем как было — на pdf.js
+        // это не влияет, он уже выполнился раньше и своё window.pdfjsLib получил.
+        const savedModule = window.module, savedExports = window.exports, savedRequire = window.require;
+        window.module = undefined; window.exports = undefined; window.require = undefined;
+        const restore = () => { window.module = savedModule; window.exports = savedExports; window.require = savedRequire; };
         const s = document.createElement('script');
         s.src = src;
         // onload срабатывает даже если сеть/блокировщик подменил ответ пустышкой —
         // проверяем, что window.Tesseract реально появился, иначе дальше упадёт
         // с непонятной "Cannot read properties of undefined (reading 'recognize')".
         s.onload = () => {
+          restore();
           if (window.Tesseract && typeof window.Tesseract.recognize === 'function') resolve(window.Tesseract);
           else reject(new Error('Скрипт OCR загрузился, но не инициализировался (похоже, заблокирован сетью или блокировщиком рекламы): ' + src));
         };
-        s.onerror = () => reject(new Error('Не удалось загрузить OCR-движок с ' + src));
+        s.onerror = () => { restore(); reject(new Error('Не удалось загрузить OCR-движок с ' + src)); };
         document.head.appendChild(s);
       });
     }
@@ -4104,8 +4115,8 @@ window.pfRemove = pfRemove;
 $('tab-nd').addEventListener('click', e=>{ const b=e.target.closest('[data-copy]'); if(b) copyText(b.getAttribute('data-copy').replace(/\\n/g,'\n'), b); });
 
 /* ---------- версия / автор (в шапке) ---------- */
-const APP_VERSION = 'v5';
-const APP_DATE = '16.07.2026';
+const APP_VERSION = 'v6';
+const APP_DATE = '11.08.2026';
 (function renderVersion(){
   const el = $('appCredit');
   if(el) el.innerHTML = `${esc(APP_VERSION)} · ${esc(APP_DATE)} · <span class="cr-name">Разработано Викторией Саламашко</span>`;
