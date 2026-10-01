@@ -11,5 +11,5 @@ OpenSpec не запущен — запуск только по команде �
 ## 2026-09-30 — подключена база знаний по ИИ
 В `CLAUDE.md` добавлен блок про `salamashko-knowledge-base`, в `.claude/skills/knowledge-base/` — скилл поиска по базе (облачные сессии подтягивают базу через `add_repo`). Правка только инструкций для ИИ, на код и сервер не влияет.
 
-## 2026-10-01 — адрес на своём домене: https://markirovka.salamashkina.ru
-Из-за ограничений РКН Vercel часто недоступен, поэтому «Маркировочный стол» раздаётся с сервера Timeweb (nginx + Let's Encrypt) на поддомене `markirovka.salamashkina.ru`. Всё настраивает один скрипт `deploy/publish-sites.sh` в репозитории `meotida_2` (таблица адресов и подробности — в его `memory-bank/techContext.md`). Статус: скрипт написан, на сервере ещё не запускался; нужны A-запись `markirovka` → IP сервера в панели Timeweb и запуск блока команд владелицей. Vercel остаётся запасным.
+## 2026-10-01 — адрес на своём домене: `https://meotida.salamashkina.ru/markirovka/`
+Из-за ограничений РКН Vercel часто недоступен, поэтому «Маркировочный стол» раздаётся с сервера Timeweb (nginx + Let's Encrypt) по пути `/markirovka/` на `meotida.salamashkina.ru` (корень `/` владелица просила не трогать). Всё настраивает скрипт `deploy/publish-sites.sh` в репозитории `meotida_2` (таблица путей — в его `memory-bank/techContext.md`). Статус: на сервере ещё не запускался. Vercel остаётся запасным.
