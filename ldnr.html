@@ -175,7 +175,7 @@ code{font-family:var(--font-mono);font-size:.86em;background:var(--surface-2);bo
 <section class="page">
   <div class="eyebrow">ЭДО · УПД без кодов маркировки</div>
   <h1 class="tab-title">ЛДНР в ЭДО <span class="accent">без кодов</span></h1>
-  <p class="tab-lede">Убирает из УПД все коды маркировки — короба и блоки (<code>&lt;НомУпак&gt;</code>) и пачки (<code>&lt;КИЗ&gt;</code>) внутри блоков <code>&lt;НомСредИдентТов&gt;</code> — и проставляет новый UUID v4 (в имени файла и в <code>ИдФайл</code>), как в «УКД → иУКД». Суммы, количества и остальные реквизиты не меняются. Работает локально, ничего не отправляет.</p>
+  <p class="tab-lede">Убирает из УПД все коды маркировки — короба и блоки (<code>&lt;НомУпак&gt;</code>) и пачки (<code>&lt;КИЗ&gt;</code>) внутри блоков <code>&lt;НомСредИдентТов&gt;</code> — и проставляет новый UUID v4 с суффиксом <code>_0_0_0_0_0_00</code> (в имени файла и в <code>ИдФайл</code>). Суммы, количества и остальные реквизиты не меняются. Работает локально, ничего не отправляет.</p>
 
   <div class="grid2" style="align-items:start">
     <div class="card">
@@ -200,7 +200,7 @@ code{font-family:var(--font-mono);font-size:.86em;background:var(--surface-2);bo
         <summary style="cursor:pointer;font-weight:700;color:var(--text)">Как это работает</summary>
         <ol style="margin:10px 0 0 20px;line-height:1.6;color:var(--text-3)">
           <li>Загрузите УПД (XML) с кодами маркировки.</li>
-          <li>Нажмите «Убрать коды» — приложение удалит все блоки <code>НомСредИдентТов</code> (короба <code>НомУпак</code> и пачки <code>КИЗ</code>) и проставит новый UUID.</li>
+          <li>Нажмите «Убрать коды» — приложение удалит все блоки <code>НомСредИдентТов</code> (короба <code>НомУпак</code> и пачки <code>КИЗ</code>), проставит новый UUID и приведёт суффикс имени к <code>_0_0_0_0_0_00</code>.</li>
           <li>Нажмите «Скачать УПД». Один файл — XML, несколько — ZIP-архив.</li>
           <li>Проверьте готовый XML кнопкой «Валидация УПД» перед отправкой в ЭДО.</li>
         </ol>
@@ -225,7 +225,7 @@ code{font-family:var(--font-mono);font-size:.86em;background:var(--surface-2);bo
 'use strict';
 const M = id => document.getElementById(id);
 const LS_THEME = 'meotida_theme';
-const APP_VERSION = 'v1';
+const APP_VERSION = 'v2';
 const APP_DATE = '26.10.2026';
 const UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const VALIDATION_URL = 'https://www.diadoc.ru/docs/forms/validation-xml';
@@ -411,15 +411,18 @@ function buildUpdName(originalName, newUuid){
   const ext = extM ? extM[0] : '';
   const base = ext ? originalName.slice(0, originalName.length - ext.length) : originalName;
   // UUID может стоять НЕ в конце имени: у УПД он в середине (…_UUID_0_1_0_1_0_00),
-  // у УКД — в конце. Берём последний UUID формата 8-4-4-4-12 где бы он ни стоял,
-  // остальную часть имени (в т.ч. хвост после UUID) сохраняем.
+  // у УКД — в конце. Берём последний UUID формата 8-4-4-4-12 где бы он ни стоял;
+  // хвост после UUID — служебный суффикс _0_1_0_1_0_00, у преобразованного УПД
+  // «без кодов» он обнуляется: _0_0_0_0_0_00 (и в имени, и в ИдФайл).
   const uuidRe = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/ig;
   const matches = [...base.matchAll(uuidRe)];
   if(!matches.length) return { ok:false, error:'В имени файла не найден UUID (формат 8-4-4-4-12). У УПД он обычно в середине имени, у УКД — в конце.' };
   const last = matches[matches.length - 1];
   const oldUuid = last[0].toLowerCase();
   const idx = last.index;
-  const outputBase = base.slice(0, idx) + newUuid + base.slice(idx + last[0].length);
+  const tail = base.slice(idx + last[0].length);
+  const newTail = /^(_\d+){6}$/.test(tail) ? '_0_0_0_0_0_00' : tail;
+  const outputBase = base.slice(0, idx) + newUuid + newTail;
   return { ok:true, oldUuid, outputBase, outputFileName: outputBase + '.xml' };
 }
 
