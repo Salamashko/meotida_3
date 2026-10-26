@@ -433,6 +433,21 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 #tab-mark .badge.ok{background:color-mix(in srgb,var(--emerald) 16%,transparent);color:var(--emerald)}
 #tab-mark .badge.err{background:color-mix(in srgb,var(--coral) 16%,transparent);color:var(--coral)}
 
+/* ---- вкладка ЛДНР в ЭДО без кодов: компоненты как у УКД ---- */
+#tab-lnr .status{margin-top:14px;border-radius:var(--radius);padding:12px 14px;font-size:13.5px;line-height:1.5;display:none}
+#tab-lnr .status.show{display:block}
+#tab-lnr .status.ok{background:color-mix(in srgb,var(--emerald) 12%,transparent);color:var(--emerald);border:1px solid color-mix(in srgb,var(--emerald) 35%,transparent)}
+#tab-lnr .status.warn{background:color-mix(in srgb,var(--amber) 12%,transparent);color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 35%,transparent)}
+#tab-lnr .status.err{background:color-mix(in srgb,var(--coral) 12%,transparent);color:var(--coral);border:1px solid color-mix(in srgb,var(--coral) 35%,transparent)}
+#tab-lnr .result-list{display:grid;gap:10px;max-height:560px;overflow:auto;padding-right:4px}
+#tab-lnr .result-item{border:1px solid var(--hair);border-radius:var(--radius);padding:12px;background:var(--bg-2)}
+#tab-lnr .result-item strong{display:block;word-break:break-all;margin-bottom:6px}
+#tab-lnr .result-meta{color:var(--text-3);font-size:12px;line-height:1.5;word-break:break-all}
+#tab-lnr .result-meta code{font-size:11px}
+#tab-lnr .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:100px;font-family:var(--font-mono);font-size:11px;font-weight:600;margin-top:8px}
+#tab-lnr .badge.ok{background:color-mix(in srgb,var(--emerald) 16%,transparent);color:var(--emerald)}
+#tab-lnr .badge.err{background:color-mix(in srgb,var(--coral) 16%,transparent);color:var(--coral)}
+
 /* ---- «загрузить все файлы разом»: список имён ---- */
 .all-name-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 11px;border:1px solid var(--hair);border-radius:var(--radius);margin-top:7px;background:var(--bg-2);font-size:12.5px}
 .all-name-row .an-step{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);min-width:74px}
@@ -473,6 +488,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
   <button class="tabbtn" data-tab="gtin">GTIN / МЦ</button>
   <button class="tabbtn" data-tab="ukd">УКД → иУКД</button>
   <button class="tabbtn" data-tab="mark">СвВыбытияМАРК</button>
+  <button class="tabbtn" data-tab="lnr">ЛДНР в ЭДО без кодов</button>
   <button class="tabbtn" data-tab="help">Как пользоваться</button>
 </div></div>
 
@@ -940,20 +956,65 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
   </div>
 </section>
 
+<!-- ==================== ЛДНР в ЭДО без кодов ==================== -->
+<section class="tab" id="tab-lnr">
+  <div class="eyebrow">ЭДО · УПД без кодов маркировки</div>
+  <h1 class="tab-title">ЛДНР в ЭДО <span class="accent">без кодов</span></h1>
+  <p class="tab-lede">Убирает из УПД все коды маркировки — блоки <code>&lt;НомСредИдентТов&gt;</code> с кодами <code>&lt;НомУпак&gt;</code> внутри — и проставляет новый UUID v4 (в имени файла и в <code>ИдФайл</code>), как в «УКД → иУКД». Суммы, количества и остальные реквизиты не меняются. Работает локально, ничего не отправляет.</p>
+
+  <div class="grid2" style="align-items:start">
+    <div class="card">
+      <h3>1. Загрузка и скачивание</h3>
+      <div class="dropzone" id="lnrDrop">
+        <strong>⊕ Перетащите сюда УПД (XML) или выберите файлы</strong>
+        <div class="dz-sub">можно один или несколько файлов · .xml / .txt</div>
+        <input type="file" id="lnrFileInput" accept=".xml,.txt,text/xml,application/xml" multiple>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <button class="btn btn-primary" id="lnrStripBtn" type="button">Убрать коды</button>
+        <button class="btn btn-accent2" id="lnrDownloadBtn" type="button">↓ Скачать УПД</button>
+        <button class="btn" id="lnrValidateBtn" type="button">Валидация УПД</button>
+        <button class="btn btn-danger" id="lnrClearBtn" type="button">✕ Очистить</button>
+      </div>
+
+      <div class="validation-note" style="margin-top:12px;padding:12px 14px;border-radius:var(--radius);background:color-mix(in srgb,var(--coral) 8%,transparent);border:1px solid color-mix(in srgb,var(--coral) 30%,transparent);font-size:12.5px;line-height:1.55">После скачивания готового УПД обязательно проверьте XML на валидность перед отправкой в ЭДО. Сначала скачайте файл, затем нажмите «Валидация УПД» и загрузите полученный XML в сервис проверки Диадок (откроется в новой вкладке).</div>
+      <div id="lnrStatus" class="status"></div>
+
+      <details style="margin-top:16px;border:1px solid var(--hair);border-radius:var(--radius);padding:12px 14px;background:var(--bg-2)">
+        <summary style="cursor:pointer;font-weight:700;color:var(--text)">Как это работает</summary>
+        <ol style="margin:10px 0 0 20px;line-height:1.6;color:var(--text-3)">
+          <li>Загрузите УПД (XML) с кодами маркировки.</li>
+          <li>Нажмите «Убрать коды» — приложение удалит все блоки <code>НомСредИдентТов</code> и проставит новый UUID.</li>
+          <li>Нажмите «Скачать УПД». Один файл — XML, несколько — ZIP-архив.</li>
+          <li>Проверьте готовый XML кнопкой «Валидация УПД» перед отправкой в ЭДО.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>2. Что будет создано</h3>
+      <div id="lnrPreview" class="result-list"></div>
+    </div>
+  </div>
+</section>
+
 <!-- ==================== КАК ПОЛЬЗОВАТЬСЯ ==================== -->
 <section class="tab help" id="tab-help">
   <div class="eyebrow">инструкция</div>
   <h1 class="tab-title">Как <span class="accent">пользоваться</span></h1>
-  <p class="tab-lede">Четыре инструмента для работы с кодами «Честный знак» в одном месте. Ниже — что делает каждая вкладка и как ими пользоваться.</p>
+  <p class="tab-lede">Шесть инструментов для работы с кодами «Честный знак» и ЭДО в одном месте. Ниже — что делает каждая вкладка и как ими пользоваться.</p>
 
   <div class="card">
     <h3>О приложении</h3>
-    <p>«Маркировочный стол» объединяет четыре рабочих инструмента:</p>
+    <p>«Маркировочный стол» объединяет шесть рабочих инструментов:</p>
     <ul>
       <li><b>Недостача</b> — вычисляет недостачу пачек и блоков в коробе с таможни и собирает письмо.</li>
       <li><b>План / Факт</b> — простое сравнение двух списков кодов.</li>
       <li><b>GTIN / МЦ</b> — база минимальных цен и анализ ошибок ГИС МТ по УПД.</li>
       <li><b>УКД → иУКД</b> — конвертер корректировочных документов ЭДО.</li>
+      <li><b>СвВыбытияМАРК</b> — добавляет в УПД признак вывода кодов из оборота для собственных нужд.</li>
+      <li><b>ЛДНР в ЭДО без кодов</b> — убирает из УПД все коды маркировки и ставит новый ID.</li>
     </ul>
     <p class="note">Все вкладки работают локально в браузере — данные никуда не отправляются. Тему (светлая / тёмная) переключает кнопка в правом верхнем углу. Кнопка «Очистить всё» очищает поля во всех вкладках. Почти у каждого поля есть кнопка «↑ файл» — можно вставить текст или загрузить <b>.txt</b>, <b>.xls</b>, <b>.xlsx</b> (таблица из Excel читается автоматически).</p>
   </div>
@@ -1022,6 +1083,23 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
       <li><b>УКД → иУКД</b> — загрузите один или несколько XML УКД, задайте номер и дату исправления, нажмите «Скачать иУКД». Один файл — скачается XML, несколько — ZIP-архив.</li>
       <li><b>УКД → иУКД (цены и коды)</b> — то же плюс редактирование цен, сумм, реквизитов и кодов маркировки (короба/блоки/пачки) прямо перед выгрузкой.</li>
       <li>После скачивания проверьте XML кнопкой «Валидация иУКД» перед отправкой в ЭДО.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>СвВыбытияМАРК</h3>
+    <ul>
+      <li><b>СвВыбытияМАРК</b> — загрузите УПД (XML), при необходимости поправьте дату счёта-фактуры, нажмите кнопку — приложение добавит в документ признак вывода из оборота для собственных нужд и новый UUID v4.</li>
+      <li>Один файл скачивается XML, несколько — ZIP-архивом. Перед отправкой в ЭДО проверьте XML кнопкой «Валидация УПД».</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>ЛДНР в ЭДО без кодов</h3>
+    <ul>
+      <li><b>ЛДНР в ЭДО без кодов</b> — загружает УПД (XML) с кодами маркировки и убирает их: все блоки <code>НомСредИдентТов</code> с кодами <code>НомУпак</code> удаляются целиком.</li>
+      <li>Одновременно проставляется новый UUID v4 — в имени файла и в атрибуте <code>ИдФайл</code> внутри XML (как в «УКД → иУКД»). Суммы, количества и остальные реквизиты не меняются.</li>
+      <li>Один файл скачивается XML, несколько — ZIP-архивом. Перед отправкой в ЭДО проверьте XML кнопкой «Валидация УПД».</li>
     </ul>
   </div>
 </section>
@@ -3651,6 +3729,154 @@ window.__markInit = function(){
 };
 })();
 </script>
+<script>// ===== ЛДНР в ЭДО без кодов (удаление НомСредИдентТов + новый UUID) =====
+(function(){
+'use strict';
+const M = id => document.getElementById(id);
+let U = null; // __ukdUtils
+const state = { docs: [], processed: null };
+
+function buildUpdName(originalName, newUuid){
+  const extM = String(originalName).match(/\.(xml|txt)$/i);
+  const ext = extM ? extM[0] : '';
+  const base = ext ? originalName.slice(0, originalName.length - ext.length) : originalName;
+  // UUID может стоять НЕ в конце имени: у УПД он в середине (…_UUID_0_1_0_1_0_00),
+  // у УКД — в конце. Берём последний UUID формата 8-4-4-4-12 где бы он ни стоял,
+  // остальную часть имени (в т.ч. хвост после UUID) сохраняем.
+  const uuidRe = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/ig;
+  const matches = [...base.matchAll(uuidRe)];
+  if(!matches.length) return { ok:false, error:'В имени файла не найден UUID (формат 8-4-4-4-12). У УПД он обычно в середине имени, у УКД — в конце.' };
+  const last = matches[matches.length - 1];
+  const oldUuid = last[0].toLowerCase();
+  const idx = last.index;
+  const outputBase = base.slice(0, idx) + newUuid + base.slice(idx + last[0].length);
+  return { ok:true, oldUuid, outputBase, outputFileName: outputBase + '.xml' };
+}
+
+// Удаление кодов маркировки: блоки <НомСредИдентТов>…</НомСредИдентТов> целиком
+// (вместе с отступом и переводом строки, чтобы не оставлять пустых строк).
+function stripMarkingCodes(text){
+  const reBlock = /[ \t]*<НомСредИдентТов(?=\s|>)[^>]*>[\s\S]*?<\/НомСредИдентТов>[ \t]*(?:\r?\n)?/gi;
+  let blocks = 0, codes = 0;
+  text = text.replace(reBlock, m => {
+    blocks++;
+    codes += (m.match(/<НомУпак(?=[\s/>])/gi) || []).length;
+    return '';
+  });
+  return { text, blocks, codes };
+}
+
+function transformUpd(xml, outputBase){
+  let text = xml;
+  if(!/<Файл(?=\s|>)/i.test(text)) throw new Error('В XML не найден корневой тег <Файл>.');
+  text = U.transformIdFile(text, outputBase);
+  if(!new RegExp('<Файл(?=\\s|>)[^>]*\\sИдФайл="' + U.escapeRegExp(outputBase) + '"', 'i').test(text))
+    throw new Error('Не удалось заменить ИдФайл внутри XML.');
+  const r = stripMarkingCodes(text);
+  return { text: r.text, blocks: r.blocks, codes: r.codes };
+}
+
+function showStatus(type, msg){ const s = M('lnrStatus'); s.className = 'status show ' + type; s.textContent = msg; }
+function clearStatus(){ const s = M('lnrStatus'); s.className = 'status'; s.textContent = ''; }
+
+async function setFiles(files){
+  clearStatus();
+  const list = Array.from(files || []).filter(f => /\.(xml|txt)$/i.test(f.name));
+  if(!list.length){ state.docs = []; state.processed = null; showStatus('warn', 'XML-файлы (УПД) не выбраны.'); renderPreview(); return; }
+  M('lnrDrop').classList.add('loaded');
+  const used = new Set();
+  const docs = [];
+  for(const file of list){
+    const newUuid = U.generateUUIDv4(used);
+    try{
+      const names = buildUpdName(file.name, newUuid);
+      if(!names.ok) throw new Error(names.error);
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      const encoding = U.detectEncoding(bytes);
+      const xml = U.decodeBytes(bytes, encoding);
+      docs.push({ file, newUuid, names, encoding, xml, ok:true, error:'' });
+    }catch(err){ docs.push({ file, newUuid, ok:false, error: err.message || String(err) }); }
+  }
+  state.docs = docs;
+  state.processed = null;
+  const good = docs.filter(d => d.ok).length;
+  showStatus(good ? 'ok' : 'warn', `Загружено файлов: ${docs.length}. Готово к обработке: ${good}. Нажмите «Убрать коды».`);
+  renderPreview();
+}
+
+function process(){
+  clearStatus();
+  if(!state.docs.length){ showStatus('warn', 'Сначала загрузите один или несколько УПД (XML).'); return false; }
+  const out = [];
+  for(const doc of state.docs){
+    if(!doc.ok){ out.push({ ...doc }); continue; }
+    try{
+      const r = transformUpd(doc.xml, doc.names.outputBase);
+      out.push({ ...doc, outputXml: r.text, blocks: r.blocks, codes: r.codes, bytes: U.encodeText(r.text, doc.encoding) });
+    }catch(err){ out.push({ ...doc, ok:false, error: err.message || String(err) }); }
+  }
+  state.processed = out;
+  const okc = out.filter(d => d.ok && d.outputXml).length;
+  const withCodes = out.filter(d => d.ok && d.outputXml && d.blocks > 0).length;
+  const codesTotal = out.reduce((s, d) => s + (d.ok && d.outputXml ? d.codes : 0), 0);
+  const noCodes = okc - withCodes;
+  showStatus(okc ? 'ok' : 'err', `Готово: обработано ${okc} файл(ов). Коды убраны в ${withCodes} (всего кодов: ${codesTotal})${noCodes ? `, в ${noCodes} кодов не было` : ''}. Новый UUID проставлен. Нажмите «Скачать УПД».`);
+  renderPreview();
+  return okc > 0;
+}
+
+function download(){
+  if(!state.processed || !state.processed.some(d => d.ok && d.outputXml)){ if(!process()) return; }
+  const ready = state.processed.filter(d => d.ok && d.outputXml);
+  if(!ready.length){ showStatus('err', 'Нет готовых файлов для скачивания.'); return; }
+  if(ready.length === 1){
+    U.downloadBytes(ready[0].bytes, ready[0].names.outputFileName, 'application/xml;charset=windows-1251');
+    showStatus('ok', `Скачан файл: ${ready[0].names.outputFileName}`);
+  } else {
+    const zip = U.createZip(ready.map(d => ({ name: d.names.outputFileName, data: d.bytes })));
+    const zipName = `UPD_LNR_bez_kodov_${U.formatDateForFile(new Date())}.zip`;
+    U.downloadBytes(zip, zipName, 'application/zip');
+    showStatus('ok', `Скачан архив: ${zipName}. Файлов внутри: ${ready.length}.`);
+  }
+}
+
+function renderPreview(){
+  const box = M('lnrPreview');
+  if(!state.docs.length){ box.innerHTML = '<div class="hint">Пока файлы не выбраны. После загрузки здесь появятся будущие имена файлов и новые ID.</div>'; return; }
+  const src = state.processed || state.docs;
+  box.innerHTML = src.map(d => {
+    if(!d.ok){ return `<div class="result-item"><strong>${U.escapeHtml(d.file.name)}</strong><span class="badge err">ошибка: ${U.escapeHtml(d.error||'')}</span></div>`; }
+    const badge = d.outputXml
+      ? `<span class="badge ok">${d.blocks > 0 ? `кодов убрано: ${d.codes}` : 'кодов не было'}</span>`
+      : '<span class="badge ok">готов к обработке</span>';
+    return `<div class="result-item"><strong>${U.escapeHtml(d.names.outputFileName)}</strong>
+      <div class="result-meta"><div>Источник: ${U.escapeHtml(d.file.name)}</div>
+      <div>Старый ID: <code>${U.escapeHtml(d.names.oldUuid)}</code></div>
+      <div>Новый ID: <code>${U.escapeHtml(d.newUuid)}</code></div>${badge}</div></div>`;
+  }).join('');
+}
+
+window.__lnrInit = function(){
+  U = window.__ukdUtils;
+  if(!U){ return; }
+  M('lnrStripBtn').addEventListener('click', process);
+  M('lnrDownloadBtn').addEventListener('click', download);
+  M('lnrValidateBtn').addEventListener('click', U.openValidation);
+  M('lnrClearBtn').addEventListener('click', ()=>{
+    state.docs = []; state.processed = null;
+    M('lnrFileInput').value = ''; M('lnrDrop').classList.remove('loaded');
+    clearStatus(); renderPreview();
+  });
+  const dz = M('lnrDrop'), inp = M('lnrFileInput');
+  inp.addEventListener('change', ()=> setFiles(inp.files));
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e=>{ e.preventDefault(); dz.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e=>{ e.preventDefault(); dz.classList.remove('dragover'); }));
+  dz.addEventListener('drop', e=>{ if(e.dataTransfer.files.length) setFiles(e.dataTransfer.files); });
+  renderPreview();
+};
+})();
+</script>
 <script>// ===== Оболочка: тема, вкладки, универсальная загрузка файлов, Недостача, План/Факт =====
 (function(){
 'use strict';
@@ -4115,8 +4341,8 @@ window.pfRemove = pfRemove;
 $('tab-nd').addEventListener('click', e=>{ const b=e.target.closest('[data-copy]'); if(b) copyText(b.getAttribute('data-copy').replace(/\\n/g,'\n'), b); });
 
 /* ---------- версия / автор (в шапке) ---------- */
-const APP_VERSION = 'v6';
-const APP_DATE = '11.08.2026';
+const APP_VERSION = 'v7';
+const APP_DATE = '26.10.2026';
 (function renderVersion(){
   const el = $('appCredit');
   if(el) el.innerHTML = `${esc(APP_VERSION)} · ${esc(APP_DATE)} · <span class="cr-name">Разработано Викторией Саламашко</span>`;
@@ -4144,6 +4370,7 @@ document.querySelectorAll('#tab-help img.shot').forEach(img=>img.addEventListene
 (function initND(){ let draft=null; try{draft=JSON.parse(localStorage.getItem(LS_DRAFT));}catch(e){} applySnapshot(draft||{}); renderSessions(); })();
 if(window.__gtinInit) window.__gtinInit();
 if(window.__markInit) window.__markInit();
+if(window.__lnrInit) window.__lnrInit();
 })();
 </script>
 </body>
