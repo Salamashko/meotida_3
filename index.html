@@ -48,7 +48,8 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
+/* scroll-behavior намеренно auto: плавная прокрутка при смене вкладки выглядела как зависание */
+html.theme-switching, html.theme-switching *{transition:none!important;animation:none!important}
 body{
   background:var(--bg); color:var(--text-2); font-family:var(--font-sans);
   font-size:15px; line-height:1.6; min-height:100vh;
@@ -3910,7 +3911,15 @@ window.copyText = copyText; window.__toast = toast; window.__copy = copyText;
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ---------- ТЕМА ---------- */
-function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); try{localStorage.setItem(LS_THEME,t);}catch(e){} }
+function applyTheme(t){
+  // перекраска мгновенная: на время смены отключаем плавные transition (на больших таблицах они тормозили)
+  const root = document.documentElement;
+  root.classList.add('theme-switching');
+  root.setAttribute('data-theme', t);
+  try{localStorage.setItem(LS_THEME,t);}catch(e){}
+  const raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : f=>setTimeout(f,16);
+  raf(()=>raf(()=>root.classList.remove('theme-switching')));
+}
 (function initTheme(){ let t=null; try{t=localStorage.getItem(LS_THEME);}catch(e){} if(t) document.documentElement.setAttribute('data-theme',t); })();
 $('themeBtn').addEventListener('click', ()=>{
   const cur = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -3921,7 +3930,7 @@ $('themeBtn').addEventListener('click', ()=>{
 function showTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
-  const el = $('tab-'+name); if(el){ el.classList.add('active'); window.scrollTo({top:0,behavior:'smooth'}); }
+  const el = $('tab-'+name); if(el){ el.classList.add('active'); window.scrollTo(0,0); }
 }
 window.showTab = showTab;
 document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click', ()=>showTab(b.dataset.tab)));
