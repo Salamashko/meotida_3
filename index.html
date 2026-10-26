@@ -960,7 +960,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 <section class="tab" id="tab-lnr">
   <div class="eyebrow">ЭДО · УПД без кодов маркировки</div>
   <h1 class="tab-title">ЛДНР в ЭДО <span class="accent">без кодов</span></h1>
-  <p class="tab-lede">Убирает из УПД все коды маркировки — блоки <code>&lt;НомСредИдентТов&gt;</code> с кодами <code>&lt;НомУпак&gt;</code> внутри — и проставляет новый UUID v4 (в имени файла и в <code>ИдФайл</code>), как в «УКД → иУКД». Суммы, количества и остальные реквизиты не меняются. Работает локально, ничего не отправляет.</p>
+  <p class="tab-lede">Убирает из УПД все коды маркировки — короба и блоки (<code>&lt;НомУпак&gt;</code>) и пачки (<code>&lt;КИЗ&gt;</code>) внутри блоков <code>&lt;НомСредИдентТов&gt;</code> — и проставляет новый UUID v4 (в имени файла и в <code>ИдФайл</code>), как в «УКД → иУКД». Суммы, количества и остальные реквизиты не меняются. Работает локально, ничего не отправляет.</p>
 
   <div class="grid2" style="align-items:start">
     <div class="card">
@@ -985,7 +985,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
         <summary style="cursor:pointer;font-weight:700;color:var(--text)">Как это работает</summary>
         <ol style="margin:10px 0 0 20px;line-height:1.6;color:var(--text-3)">
           <li>Загрузите УПД (XML) с кодами маркировки.</li>
-          <li>Нажмите «Убрать коды» — приложение удалит все блоки <code>НомСредИдентТов</code> и проставит новый UUID.</li>
+          <li>Нажмите «Убрать коды» — приложение удалит все блоки <code>НомСредИдентТов</code> (короба <code>НомУпак</code> и пачки <code>КИЗ</code>) и проставит новый UUID.</li>
           <li>Нажмите «Скачать УПД». Один файл — XML, несколько — ZIP-архив.</li>
           <li>Проверьте готовый XML кнопкой «Валидация УПД» перед отправкой в ЭДО.</li>
         </ol>
@@ -1097,7 +1097,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
   <div class="card">
     <h3>ЛДНР в ЭДО без кодов</h3>
     <ul>
-      <li><b>ЛДНР в ЭДО без кодов</b> — загружает УПД (XML) с кодами маркировки и убирает их: все блоки <code>НомСредИдентТов</code> с кодами <code>НомУпак</code> удаляются целиком.</li>
+      <li><b>ЛДНР в ЭДО без кодов</b> — загружает УПД (XML) с кодами маркировки и убирает их: все блоки <code>НомСредИдентТов</code> удаляются целиком — и короба/блоки (<code>НомУпак</code>), и пачки (<code>КИЗ</code>).</li>
       <li>Одновременно проставляется новый UUID v4 — в имени файла и в атрибуте <code>ИдФайл</code> внутри XML (как в «УКД → иУКД»). Суммы, количества и остальные реквизиты не меняются.</li>
       <li>Один файл скачивается XML, несколько — ZIP-архивом. Перед отправкой в ЭДО проверьте XML кнопкой «Валидация УПД».</li>
     </ul>
@@ -3755,15 +3755,23 @@ function buildUpdName(originalName, newUuid){
 
 // Удаление кодов маркировки: блоки <НомСредИдентТов>…</НомСредИдентТов> целиком
 // (вместе с отступом и переводом строки, чтобы не оставлять пустых строк).
+// Внутри блоков бывают короба/блоки (<НомУпак>) и пачки (<КИЗ>).
+// Одиночные КИЗ/НомУпак вне блока и самозакрытые блоки — страховка.
 function stripMarkingCodes(text){
   const reBlock = /[ \t]*<НомСредИдентТов(?=\s|>)[^>]*>[\s\S]*?<\/НомСредИдентТов>[ \t]*(?:\r?\n)?/gi;
-  let blocks = 0, codes = 0;
-  text = text.replace(reBlock, m => {
-    blocks++;
-    codes += (m.match(/<НомУпак(?=[\s/>])/gi) || []).length;
-    return '';
-  });
-  return { text, blocks, codes };
+  const reEmptyBlock = /[ \t]*<НомСредИдентТов(?=\s|>)[^>]*\/>[ \t]*(?:\r?\n)?/gi;
+  const reSingleKiz = /[ \t]*<КИЗ(?=\s|>)[^>]*>[\s\S]*?<\/КИЗ>[ \t]*(?:\r?\n)?/gi;
+  const reSinglePack = /[ \t]*<НомУпак(?=\s|>)[^>]*>[\s\S]*?<\/НомУпак>[ \t]*(?:\r?\n)?/gi;
+  let blocks = 0, nomPack = 0, kiz = 0;
+  const count = m => {
+    nomPack += (m.match(/<НомУпак(?=[\s/>])/gi) || []).length;
+    kiz += (m.match(/<КИЗ(?=[\s/>])/gi) || []).length;
+  };
+  text = text.replace(reBlock, m => { blocks++; count(m); return ''; });
+  text = text.replace(reEmptyBlock, () => { blocks++; return ''; });
+  text = text.replace(reSingleKiz, m => { kiz++; return ''; });
+  text = text.replace(reSinglePack, () => { nomPack++; return ''; });
+  return { text, blocks, nomPack, kiz, codes: nomPack + kiz };
 }
 
 function transformUpd(xml, outputBase){
@@ -3773,7 +3781,7 @@ function transformUpd(xml, outputBase){
   if(!new RegExp('<Файл(?=\\s|>)[^>]*\\sИдФайл="' + U.escapeRegExp(outputBase) + '"', 'i').test(text))
     throw new Error('Не удалось заменить ИдФайл внутри XML.');
   const r = stripMarkingCodes(text);
-  return { text: r.text, blocks: r.blocks, codes: r.codes };
+  return { text: r.text, blocks: r.blocks, nomPack: r.nomPack, kiz: r.kiz, codes: r.codes };
 }
 
 function showStatus(type, msg){ const s = M('lnrStatus'); s.className = 'status show ' + type; s.textContent = msg; }
@@ -3813,15 +3821,18 @@ function process(){
     if(!doc.ok){ out.push({ ...doc }); continue; }
     try{
       const r = transformUpd(doc.xml, doc.names.outputBase);
-      out.push({ ...doc, outputXml: r.text, blocks: r.blocks, codes: r.codes, bytes: U.encodeText(r.text, doc.encoding) });
+      out.push({ ...doc, outputXml: r.text, blocks: r.blocks, nomPack: r.nomPack, kiz: r.kiz, codes: r.codes, bytes: U.encodeText(r.text, doc.encoding) });
     }catch(err){ out.push({ ...doc, ok:false, error: err.message || String(err) }); }
   }
   state.processed = out;
   const okc = out.filter(d => d.ok && d.outputXml).length;
-  const withCodes = out.filter(d => d.ok && d.outputXml && d.blocks > 0).length;
-  const codesTotal = out.reduce((s, d) => s + (d.ok && d.outputXml ? d.codes : 0), 0);
+  const withCodes = out.filter(d => d.ok && d.outputXml && d.codes > 0).length;
+  const packTotal = out.reduce((s, d) => s + (d.ok && d.outputXml ? d.nomPack : 0), 0);
+  const kizTotal = out.reduce((s, d) => s + (d.ok && d.outputXml ? d.kiz : 0), 0);
+  const codesTotal = packTotal + kizTotal;
   const noCodes = okc - withCodes;
-  showStatus(okc ? 'ok' : 'err', `Готово: обработано ${okc} файл(ов). Коды убраны в ${withCodes} (всего кодов: ${codesTotal})${noCodes ? `, в ${noCodes} кодов не было` : ''}. Новый UUID проставлен. Нажмите «Скачать УПД».`);
+  const parts = kizTotal ? `короба/блоки: ${packTotal}, пачки КИЗ: ${kizTotal}` : `всего кодов: ${codesTotal}`;
+  showStatus(okc ? 'ok' : 'err', `Готово: обработано ${okc} файл(ов). Коды убраны в ${withCodes} (${parts})${noCodes ? `, в ${noCodes} кодов не было` : ''}. Новый UUID проставлен. Нажмите «Скачать УПД».`);
   renderPreview();
   return okc > 0;
 }
@@ -3848,7 +3859,7 @@ function renderPreview(){
   box.innerHTML = src.map(d => {
     if(!d.ok){ return `<div class="result-item"><strong>${U.escapeHtml(d.file.name)}</strong><span class="badge err">ошибка: ${U.escapeHtml(d.error||'')}</span></div>`; }
     const badge = d.outputXml
-      ? `<span class="badge ok">${d.blocks > 0 ? `кодов убрано: ${d.codes}` : 'кодов не было'}</span>`
+      ? `<span class="badge ok">${d.codes > 0 ? (d.kiz ? `кодов убрано: ${d.codes} (коробов/блоков ${d.nomPack}, пачек ${d.kiz})` : `кодов убрано: ${d.codes}`) : 'кодов не было'}</span>`
       : '<span class="badge ok">готов к обработке</span>';
     return `<div class="result-item"><strong>${U.escapeHtml(d.names.outputFileName)}</strong>
       <div class="result-meta"><div>Источник: ${U.escapeHtml(d.file.name)}</div>
