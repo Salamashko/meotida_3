@@ -168,6 +168,12 @@ pre.lines .l-180{background:color-mix(in srgb,var(--emerald) 16%,transparent)}
   border-radius:8px;padding:9px 12px;white-space:pre;overflow-x:auto;user-select:all
 }
 .code-none{font-size:13px;color:var(--amber)}
+.all-card{border-color:color-mix(in srgb,var(--emerald) 40%,transparent)}
+.all-head{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-bottom:12px}
+.all-head h3{margin-bottom:0}
+.all-head .btn{margin-left:auto}
+.all-sub{font-size:13px;color:var(--text-3);margin-bottom:10px}
+pre.lines.all-lines{max-height:420px;overflow:auto}
 .rule{margin:10px 0 0 20px;line-height:1.65;color:var(--text-3);font-size:13.5px}
 .rule li{margin-bottom:4px}
 details.how{margin-top:16px;border:1px solid var(--hair);border-radius:var(--radius);padding:12px 14px;background:var(--bg-2)}
@@ -177,6 +183,7 @@ details.how summary{cursor:pointer;font-weight:700;color:var(--text)}
 .app-footer{max-width:var(--maxw);margin:0 auto;padding:22px 20px 40px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--text-3);font-size:11.5px;letter-spacing:.06em}
 .app-footer .credit{color:var(--accent-2)}
 @media (max-width:640px){
+  .all-head .btn{margin-left:0}
   .wrap{padding:0 16px}
   .card,.file-card{padding:16px}
   .doc{padding:12px}
@@ -228,8 +235,18 @@ details.how summary{cursor:pointer;font-weight:700;color:var(--text)}
         <li>Среди строк с этим номером документа должна быть строка, где <b>4-я позиция = 11 или 13</b> и <b>8-я позиция содержит 24083</b>.</li>
         <li>Если так — выводятся <b>все строки</b> этого документа (как в файле, по порядку) и отдельно <b>код</b> — 8-я позиция строки, где 4-я позиция = 180.</li>
         <li>В одном файле таких документов может быть несколько — выводятся все.</li>
+        <li>Сразу под загрузкой — <b>сводка</b>: все строки с кодом (4-я позиция = 180) из найденных документов всех загруженных файлов, подряд, с одной кнопкой «Копировать».</li>
       </ol>
     </details>
+  </div>
+
+  <div class="card all-card" id="pbAll" hidden>
+    <div class="all-head">
+      <h3>Все строки с кодом — из всех файлов</h3>
+      <button class="btn btn-primary" type="button" data-copy="all">⧉ Копировать все строки</button>
+    </div>
+    <div class="all-sub" id="pbAllSub"></div>
+    <pre class="lines all-lines" id="pbAllLines"></pre>
   </div>
 
   <div id="pbResults"></div>
@@ -246,7 +263,7 @@ details.how summary{cursor:pointer;font-weight:700;color:var(--text)}
 'use strict';
 const M = id => document.getElementById(id);
 const LS_THEME = 'meotida_theme';
-const APP_VERSION = 'v1';
+const APP_VERSION = 'v2';
 const APP_DATE = '30.10.2026';
 
 // Правило владелицы (30.10.2026)
@@ -431,6 +448,21 @@ const blobUrls = [];
 let seq = 0;
 function addCopy(text){ const id = 'c' + (++seq); copyStore.set(id, text); return id; }
 
+// Сводка: строки с кодом (4-я поз. = 180) из найденных документов всех загруженных файлов, по порядку
+const allRows = [];   // {raw, file}
+let allEol = '';
+function renderAll(){
+  const box = M('pbAll');
+  if (!allRows.length){ box.hidden = true; copyStore.delete('all'); return; }
+  copyStore.set('all', allRows.map(r => r.raw).join(allEol || '\r\n'));
+  const files = new Set(allRows.map(r => r.file)).size;
+  M('pbAllSub').textContent = allRows.length + ' ' + plural(allRows.length, 'строка', 'строки', 'строк')
+    + ' · из ' + files + ' ' + plural(files, 'файла', 'файлов', 'файлов')
+    + ' · кнопка копирует их подряд, ровно как в файлах';
+  M('pbAllLines').textContent = allRows.map(r => r.raw).join('\n');
+  box.hidden = false;
+}
+
 function renderFile(file){
   const { name, from, bytes, res } = file;
   const url = URL.createObjectURL(new Blob([bytes], {type:'application/octet-stream'}));
@@ -477,7 +509,7 @@ function renderFile(file){
   M('pbResults').appendChild(card);
 }
 
-M('pbResults').addEventListener('click', async e => {
+document.addEventListener('click', async e => {
   const btn = e.target.closest('[data-copy]');
   if (!btn) return;
   const text = copyStore.get(btn.dataset.copy);
@@ -525,7 +557,10 @@ async function handleFiles(list){
       f.res = analyzeSpr(decodeText(f.bytes));
       docs += f.res.docs.length;
       renderFile(f);
+      if (!allEol && f.res.docs.length) allEol = f.res.eol;
+      f.res.docs.forEach(d => d.rows.forEach(r => { if (r.type === TYPE_CODE) allRows.push({ raw: r.raw, file: f }); }));
     }
+    renderAll();
     const parts = [];
     if (out.length) parts.push('Файлов .spr: <b>' + out.length + '</b>, документов с пакетом ' + GOODS_MARK + ': <b>' + docs + '</b>.');
     notes.forEach(n => parts.push(n));
@@ -548,6 +583,8 @@ drop.addEventListener('drop', e => handleFiles(e.dataTransfer && e.dataTransfer.
 M('pbClearBtn').addEventListener('click', () => {
   M('pbResults').innerHTML = '';
   copyStore.clear();
+  allRows.length = 0; allEol = '';
+  renderAll();
   blobUrls.splice(0).forEach(u => URL.revokeObjectURL(u));
   drop.classList.remove('loaded');
   clearStatus();
