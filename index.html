@@ -335,7 +335,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 #tab-ukd .fields.four{grid-template-columns:repeat(4,minmax(0,1fr))}
 #tab-ukd .field-wide{grid-column:1/-1}
 @media(max-width:720px){#tab-ukd .fields,#tab-ukd .fields.three,#tab-ukd .fields.four{grid-template-columns:1fr}}
-#tab-ukd textarea{white-space:pre;min-height:120px}
+#tab-ukd textarea,#tab-pukd textarea{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all;min-height:120px}
 #tab-ukd .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center}
 #tab-ukd .validation-note{margin-top:10px;padding:11px 13px;border-radius:var(--radius);background:color-mix(in srgb,var(--coral) 8%,transparent);border:1px solid color-mix(in srgb,var(--coral) 30%,transparent);color:var(--text-2);font-size:12.5px;line-height:1.5}
 #tab-ukd .status{margin-top:14px;border-radius:var(--radius);padding:12px 14px;font-size:13.5px;line-height:1.5;display:none}
@@ -449,6 +449,46 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 #tab-lnr .badge.ok{background:color-mix(in srgb,var(--emerald) 16%,transparent);color:var(--emerald)}
 #tab-lnr .badge.err{background:color-mix(in srgb,var(--coral) 16%,transparent);color:var(--coral)}
 
+/* ---- вкладка Замена ID: компоненты как у СвВыбытияМАРК ---- */
+#tab-reid .status{margin-top:14px;border-radius:var(--radius);padding:12px 14px;font-size:13.5px;line-height:1.5;display:none}
+#tab-reid .status.show{display:block}
+#tab-reid .status.ok{background:color-mix(in srgb,var(--emerald) 12%,transparent);color:var(--emerald);border:1px solid color-mix(in srgb,var(--emerald) 35%,transparent)}
+#tab-reid .status.warn{background:color-mix(in srgb,var(--amber) 12%,transparent);color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 35%,transparent)}
+#tab-reid .status.err{background:color-mix(in srgb,var(--coral) 12%,transparent);color:var(--coral);border:1px solid color-mix(in srgb,var(--coral) 35%,transparent)}
+#tab-reid .result-list{display:grid;gap:10px;max-height:560px;overflow:auto;padding-right:4px}
+#tab-reid .result-item{border:1px solid var(--hair);border-radius:var(--radius);padding:12px;background:var(--bg-2)}
+#tab-reid .result-item strong{display:block;word-break:break-all;margin-bottom:6px}
+#tab-reid .result-item a{color:var(--accent-2);text-decoration:none;border-bottom:1px dashed color-mix(in srgb,var(--accent-2) 60%,transparent);cursor:pointer}
+#tab-reid .result-item a:hover{border-bottom-style:solid}
+#tab-reid .result-meta{color:var(--text-3);font-size:12px;line-height:1.5;word-break:break-all}
+#tab-reid .result-meta code{font-size:11px}
+#tab-reid .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:100px;font-family:var(--font-mono);font-size:11px;font-weight:600;margin-top:8px}
+#tab-reid .badge.ok{background:color-mix(in srgb,var(--emerald) 16%,transparent);color:var(--emerald)}
+#tab-reid .badge.err{background:color-mix(in srgb,var(--coral) 16%,transparent);color:var(--coral)}
+
+/* ---- вкладка Правильный УКД (До и После): компоненты как у УКД ---- */
+#tab-pukd .ukd-sub{display:inline-flex;gap:4px;background:var(--bg-2);border:1px solid var(--hair);border-radius:12px;padding:4px;margin-bottom:18px;flex-wrap:wrap}
+#tab-pukd .ukd-tab{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;font-weight:600;color:var(--text-3);background:none;border:none;border-radius:8px;padding:9px 14px;cursor:pointer;transition:.2s var(--ease)}
+#tab-pukd .ukd-tab.active{background:var(--accent-2);color:var(--btn-fg)}
+#tab-pukd .ukd-panel{display:none}
+#tab-pukd .ukd-panel.active{display:block}
+#tab-pukd .ukd-footer{margin-top:16px;color:var(--text-3);font-size:12px;text-align:center}
+#tab-pukd .status{margin-top:14px;border-radius:var(--radius);padding:12px 14px;font-size:13.5px;line-height:1.5;display:none}
+#tab-pukd .status.show{display:block}
+#tab-pukd .status.ok{background:color-mix(in srgb,var(--emerald) 12%,transparent);color:var(--emerald);border:1px solid color-mix(in srgb,var(--emerald) 35%,transparent)}
+#tab-pukd .status.warn{background:color-mix(in srgb,var(--amber) 12%,transparent);color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 35%,transparent)}
+#tab-pukd .status.err{background:color-mix(in srgb,var(--coral) 12%,transparent);color:var(--coral);border:1px solid color-mix(in srgb,var(--coral) 35%,transparent)}
+#tab-pukd .result-list{display:grid;gap:10px;max-height:560px;overflow:auto;padding-right:4px}
+#tab-pukd .result-item{border:1px solid var(--hair);border-radius:var(--radius);padding:12px;background:var(--bg-2)}
+#tab-pukd .result-item strong{display:block;word-break:break-all;margin-bottom:6px}
+#tab-pukd .result-item a{color:var(--accent-2);text-decoration:none;border-bottom:1px dashed color-mix(in srgb,var(--accent-2) 60%,transparent);cursor:pointer}
+#tab-pukd .result-item a:hover{border-bottom-style:solid}
+#tab-pukd .result-meta{color:var(--text-3);font-size:12px;line-height:1.5;word-break:break-all}
+#tab-pukd .result-meta code{font-size:11px}
+#tab-pukd .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:100px;font-family:var(--font-mono);font-size:11px;font-weight:600;margin-top:8px}
+#tab-pukd .badge.ok{background:color-mix(in srgb,var(--emerald) 16%,transparent);color:var(--emerald)}
+#tab-pukd .badge.err{background:color-mix(in srgb,var(--coral) 16%,transparent);color:var(--coral)}
+
 /* ---- «загрузить все файлы разом»: список имён ---- */
 .all-name-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 11px;border:1px solid var(--hair);border-radius:var(--radius);margin-top:7px;background:var(--bg-2);font-size:12.5px}
 .all-name-row .an-step{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);min-width:74px}
@@ -490,6 +530,8 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
   <button class="tabbtn" data-tab="ukd">УКД → иУКД</button>
   <button class="tabbtn" data-tab="mark">СвВыбытияМАРК</button>
   <button class="tabbtn" data-tab="lnr">ЛДНР в ЭДО без кодов</button>
+  <button class="tabbtn" data-tab="reid">Замена ID</button>
+  <button class="tabbtn" data-tab="pukd">Правильный УКД (До и После)</button>
   <button class="tabbtn" data-tab="help">Как пользоваться</button>
 </div></div>
 
@@ -1000,15 +1042,129 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
   </div>
 </section>
 
+<!-- ==================== ЗАМЕНА ID ==================== -->
+<section class="tab" id="tab-reid">
+  <div class="eyebrow">ЭДО · новый идентификатор документа</div>
+  <h1 class="tab-title">Замена <span class="accent">ID</span></h1>
+  <p class="tab-lede">Для каждого документа (УПД / УКД) генерирует новый UUID v4 и меняет его в имени файла и в атрибуте <code>ИдФайл</code> — только там: ИНН, КПП и другие ID не трогаются. Показывает тип документа (УПД / ИУПД / УКД / иУКД) и номера счёта-фактуры. Кодировка файла сохраняется. Работает локально, ничего не отправляет.</p>
+
+  <div class="grid2" style="align-items:start">
+    <div class="card">
+      <h3>1. Загрузка и скачивание</h3>
+      <div class="dropzone" id="reidDrop">
+        <strong>⊕ Перетащите сюда XML или архив ZIP, или выберите файлы</strong>
+        <div class="dz-sub">можно один или несколько файлов · .xml / .zip (из архива берутся только *.xml)</div>
+        <input type="file" id="reidFileInput" accept=".xml,.zip,text/xml,application/xml,application/zip" multiple>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <button class="btn btn-accent2" id="reidDownloadBtn" type="button">↓ Скачать всё</button>
+        <button class="btn btn-danger" id="reidClearBtn" type="button">✕ Очистить</button>
+      </div>
+
+      <div id="reidStatus" class="status"></div>
+
+      <details style="margin-top:16px;border:1px solid var(--hair);border-radius:var(--radius);padding:12px 14px;background:var(--bg-2)">
+        <summary style="cursor:pointer;font-weight:700;color:var(--text)">Как это работает</summary>
+        <ol style="margin:10px 0 0 20px;line-height:1.6;color:var(--text-3)">
+          <li>Загрузите XML (или ZIP с XML) — обработка запустится сразу.</li>
+          <li>Для каждого файла появится новый UUID v4 — в имени файла и в <code>ИдФайл</code>; хвост имени (например <code>_0_1_0_1_0_00</code>) сохраняется как есть.</li>
+          <li>Скачайте один файл кликом по имени или всё сразу кнопкой «Скачать всё» (несколько файлов — ZIP-архивом).</li>
+          <li>Если в <code>ИдФайл</code> нет UUID — файл пропускается с пометкой «UUID не найден, файл пропущен».</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>2. Результат</h3>
+      <div id="reidPreview" class="result-list"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ПРАВИЛЬНЫЙ УКД (ДО И ПОСЛЕ) ==================== -->
+<section class="tab" id="tab-pukd">
+  <div class="eyebrow">ЭДО · коды маркировки До/После</div>
+  <h1 class="tab-title">Правильный УКД <span class="accent">(До и После)</span></h1>
+  <p class="tab-lede">Работает с блоками кодов маркировки <code>НомСредИдентТовДо</code> / <code>НомСредИдентТовПосле</code> в УКД и заодно меняет ID (новый UUID v4 в имени файла и в <code>ИдФайл</code>) — как вкладка «Замена ID». Кодировка сохраняется. Работает локально, ничего не отправляет.</p>
+  <div class="ukd-sub">
+    <button class="ukd-tab active" type="button" data-tab="pukdPanel1">Убрать одинаковое «После»</button>
+    <button class="ukd-tab" type="button" data-tab="pukdPanel2">Коды До и После</button>
+  </div>
+
+    <main id="pukdPanel1" class="ukd-panel active">
+      <section class="panel-head">
+        <h3>Убрать одинаковое «После»</h3>
+        <p>Сравнивает в каждом товаре списки кодов «До» и «После». Если они полностью совпадают — блок «После» вырезается целиком (с отступами, как в исходнике). Если хотя бы одна пара не совпала — коды не трогаются, в карточке будут номера счёта-фактуры. ID меняется всегда.</p>
+      </section>
+
+      <div class="grid2" style="align-items:start">
+        <div class="card">
+          <h3>1. Загрузка и скачивание</h3>
+          <div class="dropzone" id="pukd1Drop">
+            <strong>⊕ Перетащите сюда XML или архив ZIP, или выберите файлы</strong>
+            <div class="dz-sub">можно один или несколько файлов · .xml / .zip (из архива берутся только *.xml)</div>
+            <input type="file" id="pukd1FileInput" accept=".xml,.zip,text/xml,application/xml,application/zip" multiple>
+          </div>
+
+          <div class="row" style="margin-top:14px">
+            <button class="btn btn-accent2" id="pukd1DownloadBtn" type="button">↓ Скачать всё</button>
+            <button class="btn btn-danger" id="pukd1ClearBtn" type="button">✕ Очистить</button>
+          </div>
+
+          <div id="pukd1Status" class="status"></div>
+        </div>
+
+        <div class="card">
+          <h3>2. Результат</h3>
+          <div id="pukd1Preview" class="result-list"></div>
+        </div>
+      </div>
+    </main>
+
+    <main id="pukdPanel2" class="ukd-panel">
+      <section class="panel-head">
+        <h3>Коды До и После</h3>
+        <p>Показывает все коды «До» и «После» файла одним списком (по одному в строке). Отредактируйте и нажмите «Применить и скачать»: блоки заполняются по порядку, каждая пара получает столько кодов, сколько было в её блоках до правки. Обычная строка становится <code>НомУпак</code>; для пачки напишите <code>КИЗ:код</code>, для транспортной упаковки — <code>ИдентТрансУпак:код</code>.</p>
+      </section>
+
+      <div class="grid2" style="align-items:start">
+        <div class="card">
+          <h3>1. Загрузка и скачивание</h3>
+          <div class="dropzone" id="pukd2Drop">
+            <strong>⊕ Перетащите сюда XML или архив ZIP, или выберите файлы</strong>
+            <div class="dz-sub">можно один или несколько файлов · .xml / .zip (из архива берутся только *.xml)</div>
+            <input type="file" id="pukd2FileInput" accept=".xml,.zip,text/xml,application/xml,application/zip" multiple>
+          </div>
+
+          <div class="row" style="margin-top:14px">
+            <button class="btn btn-accent2" id="pukd2DownloadBtn" type="button">↓ Применить всё и скачать</button>
+            <button class="btn btn-danger" id="pukd2ClearBtn" type="button">✕ Очистить</button>
+          </div>
+
+          <div id="pukd2Status" class="status"></div>
+        </div>
+
+        <div class="card">
+          <h3>2. Коды файлов</h3>
+          <div id="pukd2Editor" class="result-list"></div>
+        </div>
+      </div>
+    </main>
+
+    <div class="ukd-footer">Работает локально в браузере. Данные никуда не отправляются.</div>
+
+</section>
+
 <!-- ==================== КАК ПОЛЬЗОВАТЬСЯ ==================== -->
 <section class="tab help" id="tab-help">
   <div class="eyebrow">инструкция</div>
   <h1 class="tab-title">Как <span class="accent">пользоваться</span></h1>
-  <p class="tab-lede">Шесть инструментов для работы с кодами «Честный знак» и ЭДО в одном месте. Ниже — что делает каждая вкладка и как ими пользоваться.</p>
+  <p class="tab-lede">Восемь инструментов для работы с кодами «Честный знак» и ЭДО в одном месте. Ниже — что делает каждая вкладка и как ими пользоваться.</p>
 
   <div class="card">
     <h3>О приложении</h3>
-    <p>«Маркировочный стол» объединяет шесть рабочих инструментов:</p>
+    <p>«Маркировочный стол» объединяет восемь рабочих инструментов:</p>
     <ul>
       <li><b>Недостача</b> — вычисляет недостачу пачек и блоков в коробе с таможни и собирает письмо.</li>
       <li><b>План / Факт</b> — простое сравнение двух списков кодов.</li>
@@ -1016,6 +1172,8 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
       <li><b>УКД → иУКД</b> — конвертер корректировочных документов ЭДО.</li>
       <li><b>СвВыбытияМАРК</b> — добавляет в УПД признак вывода кодов из оборота для собственных нужд.</li>
       <li><b>ЛДНР в ЭДО без кодов</b> — убирает из УПД все коды маркировки и ставит новый ID.</li>
+      <li><b>Замена ID</b> — меняет UUID документа (имя файла и ИдФайл) на новый и показывает тип документа и номера.</li>
+      <li><b>Правильный УКД (До и После)</b> — проверяет коды «До/После» в УКД: убирает одинаковые «После» или даёт отредактировать их списком.</li>
     </ul>
     <p class="note">Все вкладки работают локально в браузере — данные никуда не отправляются. Тему (светлая / тёмная) переключает кнопка в правом верхнем углу. Кнопка «Очистить всё» очищает поля во всех вкладках. Почти у каждого поля есть кнопка «↑ файл» — можно вставить текст или загрузить <b>.txt</b>, <b>.xls</b>, <b>.xlsx</b> (таблица из Excel читается автоматически).</p>
   </div>
@@ -1101,6 +1259,24 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
       <li><b>ЛДНР в ЭДО без кодов</b> — загружает УПД (XML) с кодами маркировки и убирает их: все блоки <code>НомСредИдентТов</code> удаляются целиком — и короба/блоки (<code>НомУпак</code>), и пачки (<code>КИЗ</code>).</li>
       <li>Одновременно проставляется новый UUID v4, а служебный суффикс приводится к <code>_0_0_0_0_0_00</code> — и в имени файла, и в атрибуте <code>ИдФайл</code> внутри XML. Суммы, количества и остальные реквизиты не меняются.</li>
       <li>Один файл скачивается XML, несколько — ZIP-архивом. Перед отправкой в ЭДО проверьте XML кнопкой «Валидация УПД».</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Замена ID</h3>
+    <ul>
+      <li><b>Замена ID</b> — загрузите XML (или ZIP с XML) — для каждого документа приложение сгенерирует новый UUID v4 и заменит его в имени файла и в атрибуте <code>ИдФайл</code> (только там: ИНН, КПП и другие ID не трогаются). Кодировка файла сохраняется.</li>
+      <li>В карточке показывается тип документа (УПД / ИУПД / УКД / иУКД) и номера счёта-фактуры (НомерСчФ, НомерКСчФ), если они есть. Хвост имени файла (например <code>_0_1_0_1_0_00</code>) сохраняется как есть.</li>
+      <li>Один файл скачивается кликом по имени, несколько — кнопкой «Скачать всё» (ZIP-архив). Если UUID в <code>ИдФайл</code> не найден — файл пропускается с пометкой «UUID не найден, файл пропущен».</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Правильный УКД (До и После)</h3>
+    <ul>
+      <li><b>Убрать одинаковое «После»</b> — сравнивает в каждом товаре списки кодов в блоках <code>НомСредИдентТовДо</code> и <code>НомСредИдентТовПосле</code>. Если все пары совпали — блоки «После» вырезаются целиком (в карточке — сколько вырезано). Если хотя бы одна пара не совпала — коды не меняются, а в карточке будут НомерСчФ/НомерКСчФ; если пар нет — «Блоков До/После нет».</li>
+      <li><b>Коды До и После</b> — показывает все коды «До» и «После» одним списком (по одному в строке), можно отредактировать и применить: блоки заполняются по порядку, каждая пара получает столько кодов, сколько было в её блоках до правки. <code>КИЗ:код</code> — пачка, <code>ИдентТрансУпак:код</code> — транспортная упаковка, обычная строка — <code>НомУпак</code>.</li>
+      <li>ID (новый UUID в имени и <code>ИдФайл</code>) меняется в обеих подвкладках всегда, кодировка сохраняется. Перед отправкой в ЭДО проверьте готовый XML на валидность.</li>
     </ul>
   </div>
 </section>
@@ -3892,6 +4068,519 @@ window.__lnrInit = function(){
 };
 })();
 </script>
+<script>// ===== Замена ID + Правильный УКД (До и После): общая замена ИдФайл/UUID + две вкладки =====
+(function(){
+'use strict';
+const M = id => document.getElementById(id);
+let U = null; // window.__ukdUtils (скрипт УКД подключён раньше, заполняется в init)
+
+// ---------- общие помощники (используются обеими вкладками) ----------
+
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+const ID_FILE_RE = /(<Файл(?=\s|>)[^>]*\sИдФайл=")([^"]+)(")/i;
+
+function decodeXml(value){
+  return String(value || '')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
+// Имя файла: заменить ПОСЛЕДНИЙ UUID (где бы он ни стоял, как в buildUpdName),
+// остальное имя и хвост (например _0_1_0_1_0_00) сохранить как есть.
+// Если UUID в имени нет — имя не меняется (меняется только ИдФайл).
+function buildUuidName(fileName, newUuid){
+  const extM = String(fileName).match(/\.(xml|txt)$/i);
+  const ext = extM ? extM[0] : '.xml';
+  const base = extM ? fileName.slice(0, fileName.length - extM[0].length) : fileName;
+  const matches = [...base.matchAll(new RegExp(UUID_RE.source, 'gi'))];
+  if(!matches.length) return { oldUuid:'', outputBase: base, outputFileName: base + ext };
+  const last = matches[matches.length - 1];
+  const outputBase = base.slice(0, last.index) + newUuid + base.slice(last.index + last[0].length);
+  return { oldUuid: last[0].toLowerCase(), outputBase, outputFileName: outputBase + ext };
+}
+
+// Тип документа: УКД (ON_NKORSCHFDOPPRMARK) / УПД (ON_NSCHFDOPPR) + пометка исправления
+// (ИН_ в начале ИдФайл или наличие <ИспрКСчФ>): УПД → ИУПД, УКД → иУКД
+function detectDocType(idValue, fileName, xmlText){
+  const s = (String(idValue || '') + ' ' + String(fileName || '')).toUpperCase();
+  let base = '';
+  if(s.indexOf('ON_NKORSCHFDOPPRMARK') >= 0) base = 'УКД';
+  else if(s.indexOf('ON_NSCHFDOPPR') >= 0) base = 'УПД';
+  const isFix = /^ИН_/i.test(String(idValue || '')) || /<ИспрКСчФ(?=[\s/>])/i.test(xmlText);
+  let label;
+  if(base === 'УПД') label = isFix ? 'ИУПД' : 'УПД';
+  else if(base === 'УКД') label = isFix ? 'иУКД' : 'УКД';
+  else label = isFix ? 'Документ (исправление)' : 'Документ';
+  return { base, isFix, label };
+}
+
+// Все значения атрибута у тегов с таким именем (в порядке следования)
+function findAllAttrs(xml, tagName, attrName){
+  const re = new RegExp('<' + tagName + '(?=[\\s/>])[^>]*\\s' + attrName + '="([^"]*)"', 'gi');
+  return Array.from(String(xml).matchAll(re)).map(m => decodeXml(m[1])).filter(v => v !== '');
+}
+
+// Замена ID одного документа: новый UUID v4 — в имени файла и в значении ИдФайл
+// (только там: другие вхождения UUID и прочие ID не трогаются). Кодировка исходная.
+function replaceDocId(fileName, bytes, used){
+  const encoding = U.detectEncoding(bytes);
+  const xml = U.decodeBytes(bytes, encoding); // TextDecoder сам срезает BOM у UTF-8
+  const idM = xml.match(ID_FILE_RE);
+  if(!idM) return { ok:false, error:'В XML не найден атрибут ИдФайл у тега <Файл>.' };
+  const uuidM = idM[2].match(UUID_RE);
+  if(!uuidM) return { ok:false, error:'UUID не найден, файл пропущен (в значении ИдФайл нет UUID).' };
+  const oldUuid = uuidM[0].toLowerCase();
+  const newUuid = U.generateUUIDv4(used);
+  const text = xml.replace(ID_FILE_RE, (f, b, val, a) => b + val.replace(uuidM[0], newUuid) + a);
+  const name = buildUuidName(fileName, newUuid);
+  return {
+    ok:true, encoding, text,
+    bytes: U.encodeText(text, encoding),
+    oldUuid, newUuid,
+    oldName: fileName, newName: name.outputFileName,
+    doc: detectDocType(idM[2], fileName, text),
+    nomSchF: findAllAttrs(text, 'СчФ', 'НомерСчФ'),
+    nomKSchF: findAllAttrs(text, 'СвКСчФ', 'НомерКСчФ')
+  };
+}
+
+// Чтение источников: .xml как есть; .zip — распаковать и взять только *.xml (RAR/7z — нет)
+async function readSources(fileList){
+  const out = [];
+  for(const f of Array.from(fileList || [])){
+    if(/\.zip$/i.test(f.name)){
+      if(!window.__unzipEntries){ out.push({ srcName:f.name, name:f.name, ok:false, error:'Распаковка ZIP недоступна в этом браузере.' }); continue; }
+      try{
+        const entries = await window.__unzipEntries(f);
+        const xmls = entries.filter(e => /\.xml$/i.test(e.name));
+        if(!xmls.length){ out.push({ srcName:f.name, name:f.name, ok:false, error:'В архиве нет XML-файлов.' }); continue; }
+        for(const e of xmls) out.push({ srcName:f.name, name:e.name, bytes:e.data });
+      }catch(err){ out.push({ srcName:f.name, name:f.name, ok:false, error:err.message || String(err) }); }
+    } else if(/\.xml$/i.test(f.name)){
+      const buf = await f.arrayBuffer();
+      out.push({ srcName:f.name, name:f.name, bytes:new Uint8Array(buf) });
+    } else {
+      out.push({ srcName:f.name, name:f.name, ok:false, error:'Не понимаю файл: нужен .xml или .zip (RAR/7z не поддерживаются).' });
+    }
+  }
+  return out;
+}
+
+// Общая обработка обеих вкладок: каждому файлу — новый UUID (имя файла + ИдФайл)
+async function processIdJobs(fileList){
+  const used = new Set();
+  const jobs = [];
+  for(const src of await readSources(fileList)){
+    if(src.ok === false){ jobs.push(src); continue; }
+    try{ jobs.push(Object.assign(src, replaceDocId(src.name, src.bytes, used))); }
+    catch(err){ jobs.push(Object.assign(src, { ok:false, error:err.message || String(err) })); }
+  }
+  return jobs;
+}
+
+// ---------- пары блоков НомСредИдентТовДо / НомСредИдентТовПосле ----------
+
+const PAIR_RE = /<НомСредИдентТовДо(?=[\s/>])[^>]*>[\s\S]*?<\/НомСредИдентТовДо>\s*<НомСредИдентТовПосле(?=[\s/>])[^>]*>[\s\S]*?<\/НомСредИдентТовПосле>/gi;
+const DO_BLOCK_RE = /<НомСредИдентТовДо(?=[\s/>])[^>]*>[\s\S]*?<\/НомСредИдентТовДо>/i;
+const AFTER_BLOCK_RE = /<НомСредИдентТовПосле(?=[\s/>])[^>]*>[\s\S]*?<\/НомСредИдентТовПосле>/i;
+
+// Коды внутри блока До/После: <НомУпак>, <КИЗ> и <НомСредИдентТов ИдентТрансУпак="..."/>
+function collectGroupCodes(block){
+  const re = /<НомУпак(?=[\s/>])[^>]*>([\s\S]*?)<\/НомУпак>|<КИЗ(?=[\s/>])[^>]*>([\s\S]*?)<\/КИЗ>|<НомСредИдентТов(?=[\s/>])[^>]*\sИдентТрансУпак="([^"]*)"[^>]*\/>/gi;
+  const codes = [];
+  let m;
+  while((m = re.exec(block))){
+    if(m[1] !== undefined) codes.push({ tag:'НомУпак', code:decodeXml(m[1].trim()) });
+    else if(m[2] !== undefined) codes.push({ tag:'КИЗ', code:decodeXml(m[2].trim()) });
+    else codes.push({ tag:'ИдентТрансУпак', code:decodeXml((m[3] || '').trim()) });
+  }
+  return codes;
+}
+
+// Найти все пары До/После (в порядке следования) с абсолютными позициями.
+// Самозакрытые теги контейнером не являются — такая пара пропускается.
+function findCodePairs(text){
+  const pairs = [];
+  const re = new RegExp(PAIR_RE.source, 'gi');
+  let m;
+  while((m = re.exec(text))){
+    const doM = m[0].match(DO_BLOCK_RE);
+    const afM = m[0].match(AFTER_BLOCK_RE);
+    if(!doM || !afM) continue;
+    const doOpen = doM[0].match(/<НомСредИдентТовДо(?=[\s/>])[^>]*>/i);
+    const afOpen = afM[0].match(/<НомСредИдентТовПосле(?=[\s/>])[^>]*>/i);
+    if((doOpen && /\/>\s*$/.test(doOpen[0])) || (afOpen && /\/>\s*$/.test(afOpen[0]))) continue;
+    pairs.push({
+      start: m.index, end: m.index + m[0].length,
+      match: m[0], doBlock: doM[0], afterBlock: afM[0],
+      codesDo: collectGroupCodes(doM[0]), codesAfter: collectGroupCodes(afM[0])
+    });
+  }
+  return pairs;
+}
+
+const codesKey = codes => codes.map(c => c.tag + ':' + c.code).join('\n');
+const sameCodes = (a, b) => codesKey(a) === codesKey(b);
+
+// Подвкладка «Убрать одинаковое После»: если ВСЕ пары совпали — вырезать блоки
+// «После» (вместе с переводом строки и отступом перед ними). Иначе текст не менять.
+function cutIdenticalAfter(text){
+  const pairs = findCodePairs(text);
+  if(!pairs.length) return { noPairs:true, mismatch:false, cut:0, text };
+  if(pairs.some(p => !sameCodes(p.codesDo, p.codesAfter))) return { noPairs:false, mismatch:true, cut:0, text };
+  let out = text, cut = 0;
+  // режем с конца, чтобы позиции ранних пар не съехали
+  for(let i = pairs.length - 1; i >= 0; i--){
+    const p = pairs[i];
+    const afStart = p.start + p.match.indexOf(p.afterBlock);
+    const win = out.slice(Math.max(0, afStart - 300), afStart);
+    const wm = win.match(/(?:\r?\n)[ \t]*$/);
+    const cutFrom = wm ? (Math.max(0, afStart - 300) + wm.index) : afStart;
+    out = out.slice(0, cutFrom) + out.slice(afStart + p.afterBlock.length);
+    cut++;
+  }
+  return { noPairs:false, mismatch:false, cut, text: out };
+}
+
+// ---------- подвкладка «Коды До и После»: разбор и обратная сборка ----------
+
+// Разбор строк поля кодов: "КИЗ:код", "НомУпак:код", "ИдентТрансУпак:код" (как в УКД-вкладке);
+// строка без префикса — НомУпак
+function parseCodeLines(text){
+  return String(text || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean).map(line => {
+    const m = line.match(/^(КИЗ|НомУпак|ИдентТрансУпак)\s*[:;|]\s*(.+)$/i);
+    if(m){
+      const tag = /^киз$/i.test(m[1]) ? 'КИЗ' : (/^номупак$/i.test(m[1]) ? 'НомУпак' : 'ИдентТрансУпак');
+      return { tag, code: m[2].trim() };
+    }
+    return { tag:'НомУпак', code: line };
+  });
+}
+
+// Собрать блок До/После заново из списка кодов; отступы строк — как в исходном блоке
+function rebuildGroup(originalBlock, codes){
+  const openM = originalBlock.match(/<НомСредИдентТов(До|После)(?=[\s/>])[^>]*>/i);
+  if(!openM) return originalBlock;
+  const openTag = openM[0];
+  const name = 'НомСредИдентТов' + openM[1];
+  const lineEnding = originalBlock.includes('\r\n') ? '\r\n' : '\n';
+  const firstLine = originalBlock.split(/\r?\n/)[0] || '';
+  const indent = (firstLine.match(/^[ \t]*/) || [''])[0];
+  const childM = originalBlock.match(/\r?\n([ \t]*)<(НомУпак|КИЗ|НомСредИдентТов)(?=[\s/>])/);
+  const childIndent = childM ? childM[1] : (indent + '  ');
+  if(!codes.length) return openTag + '</' + name + '>';
+  const lines = codes.map(item => {
+    if(item.tag === 'ИдентТрансУпак') return childIndent + '<НомСредИдентТов ИдентТрансУпак="' + U.escapeXmlAttr(item.code) + '"/>';
+    const tag = item.tag === 'КИЗ' ? 'КИЗ' : 'НомУпак';
+    return childIndent + '<' + tag + '>' + U.escapeXmlText(item.code) + '</' + tag + '>';
+  });
+  return openTag + lineEnding + lines.join(lineEnding) + lineEnding + indent + '</' + name + '>';
+}
+
+// Вариант А: общие списки «До»/«После» расходуются по исходным длинам блоков (по порядку).
+// Если кодов в поле меньше, чем нужно, — ошибка, файл не меняется.
+function applyEditedCodes(text, doText, afterText){
+  const pairs = findCodePairs(text);
+  if(!pairs.length) return { ok:true, text, applied:0 };
+  const doList = parseCodeLines(doText);
+  const afterList = parseCodeLines(afterText);
+  const needDo = pairs.reduce((s, p) => s + p.codesDo.length, 0);
+  const needAfter = pairs.reduce((s, p) => s + p.codesAfter.length, 0);
+  if(doList.length < needDo) return { ok:false, error:'Кодов в поле «Коды До» меньше, чем нужно (нужно ' + needDo + ', есть ' + doList.length + ').' };
+  if(afterList.length < needAfter) return { ok:false, error:'Кодов в поле «Коды После» меньше, чем нужно (нужно ' + needAfter + ', есть ' + afterList.length + ').' };
+  let di = 0, ai = 0;
+  let out = '', pos = 0;
+  for(const p of pairs){
+    const portionDo = doList.slice(di, di + p.codesDo.length); di += p.codesDo.length;
+    const portionAfter = afterList.slice(ai, ai + p.codesAfter.length); ai += p.codesAfter.length;
+    out += text.slice(pos, p.start);
+    let seg = p.match;
+    // «После» стоит позже «До» — заменяем сначала его, затем «До» (позиции через indexOf)
+    const iAf = seg.indexOf(p.afterBlock);
+    seg = seg.slice(0, iAf) + rebuildGroup(p.afterBlock, portionAfter) + seg.slice(iAf + p.afterBlock.length);
+    const iDo = seg.indexOf(p.doBlock);
+    seg = seg.slice(0, iDo) + rebuildGroup(p.doBlock, portionDo) + seg.slice(iDo + p.doBlock.length);
+    out += seg;
+    pos = p.end;
+  }
+  out += text.slice(pos);
+  return { ok:true, text: out, applied: pairs.length };
+}
+
+// ---------- вкладка «Замена ID» ----------
+
+const reid = { docs: [] };
+
+function reidStatus(type, msg){ const s = M('reidStatus'); s.className = 'status show ' + type; s.textContent = msg; }
+function reidClearStatus(){ const s = M('reidStatus'); s.className = 'status'; s.textContent = ''; }
+
+function metaLine(d){
+  const parts = ['Тип: ' + U.escapeHtml(d.doc.label)];
+  if(d.nomSchF.length) parts.push('НомерСчФ: ' + U.escapeHtml(d.nomSchF.join(', ')));
+  if(d.nomKSchF.length) parts.push('НомерКСчФ: ' + U.escapeHtml(d.nomKSchF.join(', ')));
+  return parts.join(' · ');
+}
+
+function renderReid(){
+  const box = M('reidPreview');
+  if(!reid.docs.length){ box.innerHTML = '<div class="hint">Пока файлы не выбраны. После загрузки здесь появятся карточки со старым и новым ID.</div>'; return; }
+  box.innerHTML = reid.docs.map((d, i) => {
+    if(!d.ok) return '<div class="result-item"><strong>' + U.escapeHtml(d.name || d.srcName) + '</strong><span class="badge err">' + U.escapeHtml(d.error || '') + '</span><div class="result-meta">Источник: ' + U.escapeHtml(d.srcName) + '</div></div>';
+    return '<div class="result-item">' +
+      '<strong><a href="#" data-reid-dl="' + i + '">' + U.escapeHtml(d.newName) + '</a></strong>' +
+      '<div class="result-meta">' +
+      '<div>Источник: ' + U.escapeHtml(d.srcName === d.oldName ? d.oldName : (d.srcName + ' → ' + d.oldName)) + '</div>' +
+      '<div>Старый ID: <code>' + U.escapeHtml(d.oldUuid) + '</code> → Новый ID: <code>' + U.escapeHtml(d.newUuid) + '</code></div>' +
+      '<div>' + metaLine(d) + '</div></div>' +
+      '<span class="badge ok">' + U.escapeHtml(d.doc.label) + '</span></div>';
+  }).join('');
+}
+
+function reidReady(){ return reid.docs.filter(d => d.ok); }
+
+function reidDownloadAll(){
+  const ready = reidReady();
+  if(!ready.length){ reidStatus('err', 'Нет готовых файлов для скачивания.'); return; }
+  if(ready.length === 1){
+    U.downloadBytes(ready[0].bytes, ready[0].newName, 'application/xml;charset=windows-1251');
+    reidStatus('ok', 'Скачан файл: ' + ready[0].newName);
+    return;
+  }
+  const zip = U.createZip(ready.map(d => ({ name: d.newName, data: d.bytes })));
+  const zipName = 'Замена_ID_' + U.formatDateForFile(new Date()) + '.zip';
+  U.downloadBytes(zip, zipName, 'application/zip');
+  reidStatus('ok', 'Скачан архив: ' + zipName + '. Файлов внутри: ' + ready.length + '.');
+}
+
+async function reidSetFiles(files){
+  reidClearStatus();
+  reid.docs = await processIdJobs(files);
+  M('reidDrop').classList.add('loaded');
+  const ready = reidReady();
+  const skipped = reid.docs.length - ready.length;
+  reidStatus(ready.length ? 'ok' : 'warn',
+    'Загружено файлов: ' + reid.docs.length + '. Готово: ' + ready.length +
+    (skipped ? '. Пропущено: ' + skipped + '.' : '.') +
+    ' Скачайте по клику на имя файла или кнопкой «Скачать всё».');
+  renderReid();
+}
+
+window.__reidInit = function(){
+  U = window.__ukdUtils;
+  if(!U) return;
+  const dz = M('reidDrop'), inp = M('reidFileInput');
+  inp.addEventListener('change', () => reidSetFiles(inp.files));
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('dragover'); }));
+  dz.addEventListener('drop', e => { if(e.dataTransfer.files.length) reidSetFiles(e.dataTransfer.files); });
+  M('reidDownloadBtn').addEventListener('click', reidDownloadAll);
+  M('reidClearBtn').addEventListener('click', () => {
+    reid.docs = [];
+    inp.value = ''; dz.classList.remove('loaded');
+    reidClearStatus(); renderReid();
+  });
+  M('reidPreview').addEventListener('click', e => {
+    const a = e.target.closest('[data-reid-dl]');
+    if(!a) return;
+    e.preventDefault();
+    const d = reid.docs[Number(a.getAttribute('data-reid-dl'))];
+    if(d && d.ok) U.downloadBytes(d.bytes, d.newName, 'application/xml;charset=windows-1251');
+  });
+  renderReid();
+};
+
+// ---------- вкладка «Правильный УКД (До и После)» ----------
+
+const pukd = { docs: [] };
+
+function pukdStatus(n, type, msg){ const s = M('pukd' + n + 'Status'); s.className = 'status show ' + type; s.textContent = msg; }
+function pukdClearStatus(n){ const s = M('pukd' + n + 'Status'); s.className = 'status'; s.textContent = ''; }
+
+async function pukdSetFiles(files){
+  pukdClearStatus(1); pukdClearStatus(2);
+  pukd.docs = await processIdJobs(files);
+  // подвкладка 1: сразу сравнить До/После и вырезать одинаковые «После»
+  for(const d of pukd.docs){
+    if(!d.ok) continue;
+    d.origText = d.text; // исходный текст — нужен подвкладке «Коды До и После» (до вырезания «После»)
+    const r = cutIdenticalAfter(d.text);
+    d.noPairs = r.noPairs; d.mismatch = r.mismatch; d.cut = r.cut;
+    d.text = r.text;
+    d.bytes = U.encodeText(d.text, d.encoding);
+  }
+  M('pukd1Drop').classList.add('loaded');
+  M('pukd2Drop').classList.add('loaded');
+  renderPukd1();
+  renderPukd2();
+  const ok = pukd.docs.filter(d => d.ok).length;
+  pukdStatus(1, ok ? 'ok' : 'warn', 'Загружено файлов: ' + pukd.docs.length + '. Готово: ' + ok + '. Скачайте по клику на имя файла или кнопкой «Скачать всё».');
+  pukdStatus(2, ok ? 'ok' : 'warn', 'Файлы загружены (' + ok + ' из ' + pukd.docs.length + '). Отредактируйте коды и нажмите «Применить и скачать».');
+}
+
+function renderPukd1(){
+  const box = M('pukd1Preview');
+  if(!pukd.docs.length){ box.innerHTML = '<div class="hint">Пока файлы не выбраны. После загрузки здесь появится сравнение кодов «До/После».</div>'; return; }
+  box.innerHTML = pukd.docs.map((d, i) => {
+    if(!d.ok) return '<div class="result-item"><strong>' + U.escapeHtml(d.name || d.srcName) + '</strong><span class="badge err">' + U.escapeHtml(d.error || '') + '</span><div class="result-meta">Источник: ' + U.escapeHtml(d.srcName) + '</div></div>';
+    let badge;
+    if(d.noPairs) badge = '<span class="badge ok">Блоков До/После нет — заменён только ID</span>';
+    else if(d.mismatch){
+      const nums = [];
+      if(d.nomSchF.length) nums.push('НомерСчФ: ' + U.escapeHtml(d.nomSchF.join(', ')));
+      if(d.nomKSchF.length) nums.push('НомерКСчФ: ' + U.escapeHtml(d.nomKSchF.join(', ')));
+      badge = '<span class="badge err">ДО и После не совпадают — коды не менялись' + (nums.length ? ' (' + nums.join(', ') + ')' : '') + '</span>';
+    }
+    else badge = '<span class="badge ok">вырезано блоков После: ' + d.cut + '</span>';
+    return '<div class="result-item">' +
+      '<strong><a href="#" data-pukd1-dl="' + i + '">' + U.escapeHtml(d.newName) + '</a></strong>' +
+      '<div class="result-meta">' +
+      '<div>Источник: ' + U.escapeHtml(d.srcName) + '</div>' +
+      '<div>Старый ID: <code>' + U.escapeHtml(d.oldUuid) + '</code> → Новый ID: <code>' + U.escapeHtml(d.newUuid) + '</code></div>' +
+      '<div>' + metaLine(d) + '</div></div>' + badge + '</div>';
+  }).join('');
+}
+
+// Коды в поле textarea: НомУпак — просто код, остальные — с префиксом тега
+function codesToLines(codes){
+  return codes.map(c => (c.tag === 'НомУпак' ? c.code : c.tag + ':' + c.code)).join('\n');
+}
+
+function renderPukd2(){
+  const box = M('pukd2Editor');
+  if(!pukd.docs.length){ box.innerHTML = '<div class="hint">Пока файлы не выбраны. После загрузки здесь появятся поля «Коды До» и «Коды После» для каждого файла.</div>'; return; }
+  box.innerHTML = pukd.docs.map((d, i) => {
+    if(!d.ok) return '<div class="result-item"><strong>' + U.escapeHtml(d.name || d.srcName) + '</strong><span class="badge err">' + U.escapeHtml(d.error || '') + '</span></div>';
+    const pairs = findCodePairs(d.origText || d.text);
+    const codesDo = pairs.reduce((acc, p) => acc.concat(p.codesDo), []);
+    const codesAfter = pairs.reduce((acc, p) => acc.concat(p.codesAfter), []);
+    return '<div class="result-item">' +
+      '<strong><a href="#" data-pukd2-dl="' + i + '">' + U.escapeHtml(d.newName) + '</a></strong>' +
+      '<div class="result-meta">' +
+      '<div>Источник: ' + U.escapeHtml(d.srcName) + '</div>' +
+      '<div>' + metaLine(d) + '</div>' +
+      '<div>Пар До/После: ' + pairs.length + ' (кодов До: ' + codesDo.length + ', После: ' + codesAfter.length + ')</div></div>' +
+      '<div class="grid2" style="margin-top:10px">' +
+      '<div><label class="fld">Коды До</label><textarea data-pukd2-do="' + i + '">' + U.escapeHtml(codesToLines(codesDo)) + '</textarea></div>' +
+      '<div><label class="fld">Коды После</label><textarea data-pukd2-after="' + i + '">' + U.escapeHtml(codesToLines(codesAfter)) + '</textarea></div>' +
+      '</div>' +
+      '<div class="row" style="margin-top:10px"><button class="btn btn-primary btn-sm" type="button" data-pukd2-apply="' + i + '">↓ Применить и скачать</button></div>' +
+      '</div>';
+  }).join('');
+}
+
+// Применить отредактированные коды к файлу i (без скачивания)
+function applyDocCodes(i){
+  const d = pukd.docs[i];
+  if(!d || !d.ok) return { ok:false, error:'Файл не готов.' };
+  const taDo = document.querySelector('[data-pukd2-do="' + i + '"]');
+  const taAfter = document.querySelector('[data-pukd2-after="' + i + '"]');
+  const res = applyEditedCodes(d.origText || d.text, taDo ? taDo.value : '', taAfter ? taAfter.value : '');
+  if(!res.ok) return { ok:false, error:res.error };
+  d.text = res.text;
+  d.bytes = U.encodeText(d.text, d.encoding);
+  return { ok:true, applied:res.applied };
+}
+
+function pukd1DownloadAll(){
+  const ready = pukd.docs.filter(d => d.ok);
+  if(!ready.length){ pukdStatus(1, 'err', 'Нет готовых файлов для скачивания.'); return; }
+  if(ready.length === 1){
+    U.downloadBytes(ready[0].bytes, ready[0].newName, 'application/xml;charset=windows-1251');
+    pukdStatus(1, 'ok', 'Скачан файл: ' + ready[0].newName);
+    return;
+  }
+  const zip = U.createZip(ready.map(d => ({ name: d.newName, data: d.bytes })));
+  const zipName = 'Правильный_УКД_' + U.formatDateForFile(new Date()) + '.zip';
+  U.downloadBytes(zip, zipName, 'application/zip');
+  pukdStatus(1, 'ok', 'Скачан архив: ' + zipName + '. Файлов внутри: ' + ready.length + '.');
+}
+
+function pukd2DownloadAll(){
+  pukdClearStatus(2);
+  const ready = pukd.docs.map((d, i) => ({ d, i })).filter(x => x.d.ok);
+  if(!ready.length){ pukdStatus(2, 'err', 'Нет готовых файлов для скачивания.'); return; }
+  const done = [];
+  for(const x of ready){
+    const r = applyDocCodes(x.i);
+    if(!r.ok){ pukdStatus(2, 'err', x.d.newName + ': ' + r.error + ' Файл пропущен.'); continue; }
+    done.push(x.d);
+  }
+  if(!done.length) return;
+  if(done.length === 1){
+    U.downloadBytes(done[0].bytes, done[0].newName, 'application/xml;charset=windows-1251');
+    pukdStatus(2, 'ok', 'Скачан файл: ' + done[0].newName);
+    return;
+  }
+  const zip = U.createZip(done.map(d => ({ name: d.newName, data: d.bytes })));
+  const zipName = 'Правильный_УКД_' + U.formatDateForFile(new Date()) + '.zip';
+  U.downloadBytes(zip, zipName, 'application/zip');
+  pukdStatus(2, 'ok', 'Скачан архив: ' + zipName + '. Файлов внутри: ' + done.length + (done.length < ready.length ? ' (без ошибочных)' : '') + '.');
+}
+
+function pukdClearAll(){
+  pukd.docs = [];
+  ['pukd1FileInput','pukd2FileInput'].forEach(id => { M(id).value = ''; });
+  ['pukd1Drop','pukd2Drop'].forEach(id => { M(id).classList.remove('loaded'); });
+  pukdClearStatus(1); pukdClearStatus(2);
+  renderPukd1(); renderPukd2();
+}
+
+window.__pukdInit = function(){
+  U = window.__ukdUtils;
+  if(!U) return;
+  // переключение подвкладок — механика как во вкладке УКД
+  document.querySelectorAll('#tab-pukd .ukd-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(btn.classList.contains('active')) return;
+      document.querySelectorAll('#tab-pukd .ukd-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#tab-pukd .ukd-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      M(btn.dataset.tab).classList.add('active');
+    });
+  });
+  // обе подвкладки работают с одними и теми же загруженными файлами
+  [['pukd1Drop','pukd1FileInput'],['pukd2Drop','pukd2FileInput']].forEach(pair => {
+    const dz = M(pair[0]), inp = M(pair[1]);
+    inp.addEventListener('change', () => pukdSetFiles(inp.files));
+    ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('dragover'); }));
+    ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('dragover'); }));
+    dz.addEventListener('drop', e => { if(e.dataTransfer.files.length) pukdSetFiles(e.dataTransfer.files); });
+  });
+  M('pukd1DownloadBtn').addEventListener('click', pukd1DownloadAll);
+  M('pukd2DownloadBtn').addEventListener('click', pukd2DownloadAll);
+  M('pukd1ClearBtn').addEventListener('click', pukdClearAll);
+  M('pukd2ClearBtn').addEventListener('click', pukdClearAll);
+  M('pukd1Preview').addEventListener('click', e => {
+    const a = e.target.closest('[data-pukd1-dl]');
+    if(!a) return;
+    e.preventDefault();
+    const d = pukd.docs[Number(a.getAttribute('data-pukd1-dl'))];
+    if(d && d.ok) U.downloadBytes(d.bytes, d.newName, 'application/xml;charset=windows-1251');
+  });
+  M('pukd2Editor').addEventListener('click', e => {
+    const dl = e.target.closest('[data-pukd2-dl]');
+    if(dl){
+      e.preventDefault();
+      const d = pukd.docs[Number(dl.getAttribute('data-pukd2-dl'))];
+      if(d && d.ok) U.downloadBytes(d.bytes, d.newName, 'application/xml;charset=windows-1251');
+      return;
+    }
+    const ap = e.target.closest('[data-pukd2-apply]');
+    if(!ap) return;
+    const i = Number(ap.getAttribute('data-pukd2-apply'));
+    const r = applyDocCodes(i);
+    if(!r.ok){ pukdStatus(2, 'err', (pukd.docs[i] ? pukd.docs[i].newName + ': ' : '') + (r.error || '')); return; }
+    U.downloadBytes(pukd.docs[i].bytes, pukd.docs[i].newName, 'application/xml;charset=windows-1251');
+    pukdStatus(2, 'ok', 'Скачан файл: ' + pukd.docs[i].newName + (r.applied ? '. Коды До/После обновлены.' : '. Блоков До/После нет — скачан файл с новым ID.'));
+  });
+  renderPukd1();
+  renderPukd2();
+};
+})();
+</script>
 <script>// ===== Оболочка: тема, вкладки, универсальная загрузка файлов, Недостача, План/Факт =====
 (function(){
 'use strict';
@@ -4024,6 +4713,7 @@ async function unzipEntries(file){
   }
   return out;
 }
+window.__unzipEntries = unzipEntries; // для вкладок «Замена ID» и «Правильный УКД»
 
 /* ---- «Загрузить все файлы разом» (Недостача) ---- */
 function setNdField(id, text){
@@ -4364,8 +5054,8 @@ window.pfRemove = pfRemove;
 $('tab-nd').addEventListener('click', e=>{ const b=e.target.closest('[data-copy]'); if(b) copyText(b.getAttribute('data-copy').replace(/\\n/g,'\n'), b); });
 
 /* ---------- версия / автор (в шапке) ---------- */
-const APP_VERSION = 'v8';
-const APP_DATE = '26.10.2026';
+const APP_VERSION = 'v9';
+const APP_DATE = '11.11.2026';
 (function renderVersion(){
   const el = $('appCredit');
   if(el) el.innerHTML = `${esc(APP_VERSION)} · ${esc(APP_DATE)} · <span class="cr-name">Разработано Викторией Саламашко</span>`;
@@ -4394,6 +5084,8 @@ document.querySelectorAll('#tab-help img.shot').forEach(img=>img.addEventListene
 if(window.__gtinInit) window.__gtinInit();
 if(window.__markInit) window.__markInit();
 if(window.__lnrInit) window.__lnrInit();
+if(window.__reidInit) window.__reidInit();
+if(window.__pukdInit) window.__pukdInit();
 })();
 </script>
 </body>
