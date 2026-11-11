@@ -20,7 +20,7 @@
   --btn-fg:#0B0C10;
   --radius:10px; --radius-lg:16px;
   --ease:cubic-bezier(.16,1,.3,1);
-  --maxw:1200px;
+  --maxw:1500px;
   --font-display:'Unbounded','Manrope',system-ui,sans-serif;
   --font-sans:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
@@ -371,7 +371,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 #tab-ukd .product-title{padding:13px 15px;font-weight:700;color:var(--text);background:var(--bg-2);border-bottom:1px solid var(--hair);line-height:1.45;font-size:14px}
 #tab-ukd .product-title small{display:block;color:var(--text-3);margin-top:4px;font-weight:400;font-family:var(--font-mono);font-size:11px;word-break:break-all}
 #tab-ukd .product-body{padding:15px;display:grid;gap:14px}
-#tab-ukd .codes-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+#tab-ukd .codes-grid{display:grid;grid-template-columns:1fr;gap:14px}
 @media(max-width:720px){#tab-ukd .codes-grid{grid-template-columns:1fr}}
 #tab-ukd .code-toolbar{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px}
 @media(max-width:720px){#tab-ukd .code-toolbar{grid-template-columns:1fr}}
@@ -467,6 +467,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 #tab-reid .badge.err{background:color-mix(in srgb,var(--coral) 16%,transparent);color:var(--coral)}
 
 /* ---- вкладка Правильный УКД (До и После): компоненты как у УКД ---- */
+#tab-pukd .result-item .grid2{grid-template-columns:1fr}
 #tab-pukd .ukd-sub{display:inline-flex;gap:4px;background:var(--bg-2);border:1px solid var(--hair);border-radius:12px;padding:4px;margin-bottom:18px;flex-wrap:wrap}
 #tab-pukd .ukd-tab{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;font-weight:600;color:var(--text-3);background:none;border:none;border-radius:8px;padding:9px 14px;cursor:pointer;transition:.2s var(--ease)}
 #tab-pukd .ukd-tab.active{background:var(--accent-2);color:var(--btn-fg)}
@@ -4109,7 +4110,7 @@ function detectDocType(idValue, fileName, xmlText){
   let base = '';
   if(s.indexOf('ON_NKORSCHFDOPPRMARK') >= 0) base = 'УКД';
   else if(s.indexOf('ON_NSCHFDOPPR') >= 0) base = 'УПД';
-  const isFix = /^ИН_/i.test(String(idValue || '')) || /<ИспрКСчФ(?=[\s/>])/i.test(xmlText);
+  const isFix = /^ИН_/i.test(String(idValue || '')) || /<ИспрКСчФ(?=[\s/>])/i.test(xmlText) || /<ИспрДок(?=[\s/>])/i.test(xmlText);
   let label;
   if(base === 'УПД') label = isFix ? 'ИУПД' : 'УПД';
   else if(base === 'УКД') label = isFix ? 'иУКД' : 'УКД';
