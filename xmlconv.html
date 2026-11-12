@@ -506,11 +506,6 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 
 /* ============ Подвкладки конвертера (xc-subtabs / xc-panel) ============ */
 .xc-subtabs{display:flex;flex-wrap:wrap;gap:8px;max-width:var(--maxw);margin:0 auto;padding:16px 20px 14px;border-bottom:1px solid var(--hair);position:sticky;top:0;z-index:25;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-/* Глобальная кнопка валидации Диадок: вне всех подвкладок, всегда видна (в липкой строке навигации) */
-.xc-validate{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--coral);border:1.5px solid color-mix(in srgb,var(--coral) 55%,#000);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:0 2px 10px color-mix(in srgb,var(--coral) 35%,transparent)}
-.xc-validate:hover{filter:brightness(1.08)}
-.xc-validate:active{transform:translateY(1px)}
-@media(max-width:900px){.xc-validate{margin-left:0;width:100%;justify-content:center}}
 .xc-subbtn{
   --sub:var(--text-3);
   display:inline-flex;align-items:center;gap:8px;
@@ -631,6 +626,12 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 .xc-checkline input{width:auto;flex:none;margin-top:2px}
 .xc-checkline .cl-path{font-family:var(--font-mono);font-size:11px;color:var(--text-3);word-break:break-all}
 textarea.xc-bad{border-color:var(--coral)!important}
+/* ---- липкая панель действий подвкладки (замечание владелицы) ---- */
+.xc-stickybar{display:none;position:sticky;z-index:18;background:color-mix(in srgb,var(--bg) 93%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--hair);padding:9px 20px;gap:10px;align-items:center;flex-wrap:wrap}
+.xc-stickybar.show{display:flex}
+.xc-stickybar .xc-filecount{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.06em;color:var(--text-3);margin-left:auto;white-space:nowrap}
+.xc-fld.xc-missing input,.xc-fld.xc-missing textarea{border-color:var(--coral)!important;background:color-mix(in srgb,var(--coral) 10%,var(--bg-2))}
+.xc-fld.xc-missing label{color:var(--coral)}
 </style>
 </head>
 <body>
@@ -664,7 +665,6 @@ textarea.xc-bad{border-color:var(--coral)!important}
   <button class="xc-subbtn" type="button" data-sub="swap">Поменять местами Продавца и Покупателя</button>
   <button class="xc-subbtn" type="button" data-sub="raw">Редактор XML (все поля)</button>
   <button class="xc-subbtn" type="button" data-sub="help">Как пользоваться</button>
-  <button class="xc-validate" id="xcGlobalValidate" type="button" title="Открыть сервис проверки XML Диадок в новой вкладке">⛔ Валидация Диадок</button>
 </nav>
 
 <main class="wrap">
@@ -1084,6 +1084,7 @@ textarea.xc-bad{border-color:var(--coral)!important}
     <div class="xc-actions">
       <button class="btn" id="xcU2kApply" type="button">↻ Пересчитать и собрать</button>
       <button class="btn btn-accent2" id="xcU2kDownloadAll" type="button">↓ Скачать всё</button>
+      <button class="btn" id="xcU2kValidate" type="button">Валидация Диадок</button>
       <button class="btn btn-danger" id="xcU2kClear" type="button">✕ Очистить</button>
     </div>
     <div class="validation-note" style="margin-top:12px;padding:11px 13px;border-radius:var(--radius);background:color-mix(in srgb,var(--coral) 8%,transparent);border:1px solid color-mix(in srgb,var(--coral) 30%,transparent);font-size:12.5px;line-height:1.5">После скачивания проверьте УКД в валидаторе Диадок. «Быстрые действия» пересобирают документ — правки, сделанные в редакторе вручную, при этом сбрасываются.</div>
@@ -4770,7 +4771,8 @@ function initUI(){
       input = document.createElement('input');
       input.type = 'text';
     }
-    input.value = a.value;
+    const ov0 = doc.overrides.get(elemId + '::' + attr);
+    input.value = ov0 ? ov0.value : a.value; // поле сразу показывает запланированную правку
     input.readOnly = !!opts.readonly;
     wrap.appendChild(input);
     if (!opts.readonly) {
@@ -4801,10 +4803,10 @@ function initUI(){
     wrap.appendChild(labelEl);
     const input = document.createElement('textarea');
     input.className = 'small';
-    input.value = el.text.value;
-    wrap.appendChild(input);
     const key = elemId + '::#text';
     const ov = doc.overrides.get(key);
+    input.value = ov ? ov.value : el.text.value; // поле сразу показывает запланированную правку
+    wrap.appendChild(input);
     if (ov) wrap.classList.add('changed');
     const rev = document.createElement('button');
     rev.type = 'button'; rev.className = 'btn btn-sm xc-revert'; rev.title = '↺ Вернуть исходное значение';
@@ -5050,7 +5052,8 @@ function initUI(){
       row.innerHTML = '<span class="an">@' + escHtml(a.name) + '</span>';
       const input = document.createElement('input');
       input.type = 'text';
-      input.value = a.value;
+      const ov0 = doc.overrides.get(el.id + '::' + a.name);
+      input.value = ov0 ? ov0.value : a.value; // поле сразу показывает запланированную правку
       row.appendChild(input);
       attachRevert(row, doc, el.id, a.name, input);
       return row;
@@ -5061,7 +5064,8 @@ function initUI(){
       row.innerHTML = '<span class="an">текст</span>';
       const input = document.createElement('input');
       input.type = 'text';
-      input.value = el.text.value;
+      const ov0 = doc.overrides.get(el.id + '::#text');
+      input.value = ov0 ? ov0.value : el.text.value;
       row.appendChild(input);
       attachRevert(row, doc, el.id, '#text', input);
       return row;
@@ -5241,6 +5245,91 @@ function initUI(){
     doc._cardEl = card;
     return card;
   }
+
+  /* ---------- Липкая панель действий (замечание владелицы: кнопки скачивания вверху) ---------- */
+  // Общий механизм: панель получает липкую полосу под навигацией, когда появились результаты;
+  // кнопки-клоны кликают оригинальные кнопки, счётчик показывает число загруженных файлов.
+  const NAV_EL = document.querySelector('.xc-subtabs');
+  function navTop(){ return NAV_EL ? NAV_EL.offsetHeight : 56; }
+  function makeStickyBar(panel, cfgs){
+    // cfgs: [{ btnSel, label?, subSel?, countSel | countFn }]
+    let bar = panel.querySelector(':scope > .xc-stickybar');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.className = 'xc-stickybar';
+      panel.insertBefore(bar, panel.firstChild);
+    }
+    function countN(c){
+      if (c.countFn) return c.countFn();
+      return document.querySelectorAll(c.countSel).length;
+    }
+    function refresh(){
+      const items = cfgs.map(c => {
+        const btn = document.querySelector(c.btnSel);
+        const n = countN(c);
+        const host = c.subSel ? document.querySelector(c.subSel) : null;
+        const subActive = !host || host.classList.contains('active');
+        return { btn, n, subActive, label: c.label || (btn ? btn.textContent.trim() : 'Скачать') };
+      });
+      const total = Math.max(0, ...items.map(i => i.n));
+      const show = total > 0;
+      bar.classList.toggle('show', show);
+      if (!show) { bar.innerHTML = ''; return; }
+      bar.style.top = navTop() + 'px';
+      const cnt = document.createElement('span');
+      cnt.className = 'xc-filecount';
+      cnt.textContent = 'Файлов: ' + total;
+      bar.innerHTML = '';
+      bar.appendChild(cnt);
+      for (const it of items) {
+        if (!it.btn || !it.subActive) continue;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn btn-accent2 btn-sm';
+        b.textContent = it.label;
+        b.addEventListener('click', () => it.btn.click());
+        bar.appendChild(b);
+      }
+    }
+    // мутации результатов (загрузка/очистка) пересчитывают полосу; свои изменения полосы игнорируем
+    const obs = new MutationObserver(muts => {
+      for (const m of muts) {
+        if (bar.contains(m.target)) continue;
+        refresh();
+        break;
+      }
+    });
+    obs.observe(panel, { childList: true, subtree: true });
+    panel.addEventListener('click', e => { if (e.target.closest('.ukd-tab')) setTimeout(refresh, 60); });
+    window.addEventListener('resize', () => { if (bar.classList.contains('show')) bar.style.top = navTop() + 'px'; });
+    refresh();
+  }
+  (function initStickyBars(){
+    const xcDocs = sel => () => document.querySelectorAll(sel + ' .xc-filecard .xc-filebody').length;
+    const cfgAll = [
+      { panel: '.xc-panel[data-sub="ukd"]', cfgs: [
+        { btnSel: '#basicDownloadBtn', label: '↓ Скачать иУКД (быстро)', subSel: '#basicPanel', countSel: '#basicResultList .result-item' },
+        { btnSel: '#advancedDownloadBtn', label: '↓ Скачать иУКД (цены и коды)', subSel: '#advancedPanel', countFn: () => { const s = new Set(); document.querySelectorAll('#advancedEditor [data-product]').forEach(el => s.add(String(el.getAttribute('data-product')).split('_')[0])); return s.size; } }
+      ] },
+      { panel: '.xc-panel[data-sub="mark"]', cfgs: [{ btnSel: '#markDownloadBtn', label: '↓ Скачать УПД', countSel: '#markPreview .result-item' }] },
+      { panel: '.xc-panel[data-sub="lnr"]', cfgs: [{ btnSel: '#lnrDownloadBtn', label: '↓ Скачать УПД', countSel: '#lnrPreview .result-item' }] },
+      { panel: '.xc-panel[data-sub="reid"]', cfgs: [{ btnSel: '#reidDownloadBtn', label: '↓ Скачать всё', countSel: '#reidPreview .result-item' }] },
+      { panel: '.xc-panel[data-sub="pukd"]', cfgs: [
+        { btnSel: '#pukd1DownloadBtn', label: '↓ Скачать всё', subSel: '#pukdPanel1', countSel: '#pukd1Preview .result-item' },
+        { btnSel: '#pukd2DownloadBtn', label: '↓ Применить всё и скачать', subSel: '#pukdPanel2', countSel: '#pukd2Editor [data-pukd2-dl]' }
+      ] },
+      { panel: '.xc-panel[data-sub="iupd"]', cfgs: [{ btnSel: '#xcIupdDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcIupdResults') }] },
+      { panel: '.xc-panel[data-sub="upd2ukd"]', cfgs: [{ btnSel: '#xcU2kDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcU2kResults') }] },
+      { panel: '.xc-panel[data-sub="newupd"]', cfgs: [{ btnSel: '#xcNuDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcNuResults') }] },
+      { panel: '.xc-panel[data-sub="renum"]', cfgs: [{ btnSel: '#xcRenumDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcRenumResults') }] },
+      { panel: '.xc-panel[data-sub="swap"]', cfgs: [{ btnSel: '#xcSwapDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcSwapResults') }] },
+      { panel: '.xc-panel[data-sub="raw"]', cfgs: [{ btnSel: '#xcRawDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcRawResults') }] }
+    ];
+    for (const { panel, cfgs } of cfgAll) {
+      const el = document.querySelector(panel);
+      if (el) makeStickyBar(el, cfgs);
+    }
+  })();
 
   /* ---------- Карточки УПД/иУПД (§7, §8.1) — для iupd/renum/newupd/swap ---------- */
   // occ элемента среди одноимённых (для структурных правок по локатору path+occ)
@@ -5660,6 +5749,12 @@ function initUI(){
         return;
       }
       renum.placesWrap.style.display = '';
+      // пояснение для владельца-не-разработчика (замечание владелицы)
+      const info = document.createElement('div');
+      info.className = 'mini';
+      info.style.margin = '2px 0 8px';
+      info.textContent = 'Ниже — все места в файле, где встречается старый номер или дата. Отмечены те, что меняют сам документ. Неотмеченные (например, служебные тексты, где значение совпало случайно) менять обычно не нужно — но можешь отметить галочкой.';
+      renum.placesBox.appendChild(info);
       places.forEach((p, idx) => {
         const row = document.createElement('label');
         row.className = 'xc-checkline';
@@ -5670,7 +5765,7 @@ function initUI(){
         row.appendChild(cb);
         const txt = document.createElement('span');
         txt.innerHTML = '<span class="cl-path">' + escHtml(p.path) + '</span> — сейчас: <b>' + escHtml(p.old) + '</b>' +
-          (p.def ? ' <span class="xc-badge ok">по умолчанию</span>' : ' <span class="xc-badge">случайное совпадение?</span>');
+          (p.def ? ' <span class="xc-badge ok">менять по умолчанию</span>' : ' <span class="xc-badge">совпало случайно — обычно не трогать</span>');
         row.appendChild(txt);
         renum.placesBox.appendChild(row);
       });
@@ -6032,6 +6127,7 @@ function initUI(){
       u2kLoad(files);
       toast('Пересобрано с учётом быстрых действий');
     });
+    $('xcU2kValidate').addEventListener('click', () => U.openValidation());
     u2k.downloadBtn.addEventListener('click', () => downloadAll(u2k, 'УКД_'));
     u2k.clearBtn.addEventListener('click', () => clearPanel(u2k));
     setupDrop(u2k, u2kLoad);
@@ -6112,6 +6208,12 @@ function initUI(){
       const places = XC.findRenumberPlaces(doc.text, doc.tokens.elems, oldNum, oldDate);
       if (!places.length) { nu.placesBox.innerHTML = '<div class="mini">Совпадений не найдено.</div>'; nu.placesWrap.style.display = ''; return; }
       nu.placesWrap.style.display = '';
+      // пояснение для владельца-не-разработчика (замечание владелицы)
+      const info = document.createElement('div');
+      info.className = 'mini';
+      info.style.margin = '2px 0 8px';
+      info.textContent = 'Ниже — все места в файле, где встречается старый номер или дата. Отмечены те, что меняют сам документ. Неотмеченные (например, служебные тексты, где значение совпало случайно) менять обычно не нужно — но можешь отметить галочкой.';
+      nu.placesBox.appendChild(info);
       places.forEach((p, idx) => {
         const row = document.createElement('label');
         row.className = 'xc-checkline';
@@ -6120,7 +6222,7 @@ function initUI(){
         row.appendChild(cb);
         const txt = document.createElement('span');
         txt.innerHTML = '<span class="cl-path">' + escHtml(p.path) + '</span> — сейчас: <b>' + escHtml(p.old) + '</b>' +
-          (p.def ? ' <span class="xc-badge ok">по умолчанию</span>' : ' <span class="xc-badge">случайное совпадение?</span>');
+          (p.def ? ' <span class="xc-badge ok">менять по умолчанию</span>' : ' <span class="xc-badge">совпало случайно — обычно не трогать</span>');
         row.appendChild(txt);
         nu.placesBox.appendChild(row);
       });
@@ -6238,6 +6340,12 @@ function initUI(){
       const places = XC.findRenumberPlaces(doc.text, doc.tokens.elems, oldNum, oldDate);
       if (!places.length) { sw.placesBox.innerHTML = '<div class="mini">Совпадений не найдено.</div>'; sw.placesWrap.style.display = ''; return; }
       sw.placesWrap.style.display = '';
+      // пояснение для владельца-не-разработчика (замечание владелицы)
+      const info = document.createElement('div');
+      info.className = 'mini';
+      info.style.margin = '2px 0 8px';
+      info.textContent = 'Ниже — все места в файле, где встречается старый номер или дата. Отмечены те, что меняют сам документ. Неотмеченные (например, служебные тексты, где значение совпало случайно) менять обычно не нужно — но можешь отметить галочкой.';
+      sw.placesBox.appendChild(info);
       places.forEach((p, idx) => {
         const row = document.createElement('label');
         row.className = 'xc-checkline';
@@ -6246,7 +6354,7 @@ function initUI(){
         row.appendChild(cb);
         const txt = document.createElement('span');
         txt.innerHTML = '<span class="cl-path">' + escHtml(p.path) + '</span> — сейчас: <b>' + escHtml(p.old) + '</b>' +
-          (p.def ? ' <span class="xc-badge ok">по умолчанию</span>' : ' <span class="xc-badge">случайное совпадение?</span>');
+          (p.def ? ' <span class="xc-badge ok">менять по умолчанию</span>' : ' <span class="xc-badge">совпало случайно — обычно не трогать</span>');
         row.appendChild(txt);
         sw.placesBox.appendChild(row);
       });
@@ -6337,27 +6445,44 @@ function initUI(){
         }
       }
       if (bad.length) setStatus(sw.statusBox, 'err', 'Не обменяны: ' + bad.join('; '));
-      else setStatus(sw.statusBox, 'ok', 'Обмен выполнен. Заполните подписанта нового продавца (поля «Подписант» в карточке) — пока они пусты, скачивание заблокировано. Повторное нажатие «⇄» вернёт как было.');
+      else setStatus(sw.statusBox, 'ok', 'Обмен выполнен. Заполните в карточке поля подписанта: Должн, Фамилию и Имя нового продавца (СпосПодтПолном и Отчество — по желанию) — пока они пусты, скачивание заблокировано. Повторное нажатие «⇄» вернёт как было.');
+    }
+    // обязательные поля подписанта нового продавца: Должн, Фамилия, Имя;
+    // СпосПодтПолном и Отчество — по желанию (замечание владелицы от 12.11.2026)
+    const SIGNER_REQUIRED = ['Должн', 'Фамилия', 'Имя'];
+    function swSignerMissingKeys(doc){
+      const missingKeys = [];
+      for (const key of doc._signerKeys || []) {
+        const parts = key.split('::');
+        const elemId = Number(parts[0]);
+        const attr = parts.slice(1).join('::');
+        if (!SIGNER_REQUIRED.includes(attr)) continue;
+        // АКТУАЛЬНОЕ значение редактора: оверрайд, а если правки нет — значение в тексте
+        const cur = doc.overrides.has(key) ? doc.overrides.get(key).value : currentValue(doc, elemId, attr);
+        if (!String(cur == null ? '' : cur).trim()) missingKeys.push(key);
+      }
+      return missingKeys;
+    }
+    function swMarkSigner(doc, missingKeys){
+      const miss = new Set(missingKeys || []);
+      for (const key of doc._signerKeys || []) {
+        for (const v of (doc.views.get(key) || [])) {
+          if (v.wrap) v.wrap.classList.toggle('xc-missing', miss.has(key));
+        }
+      }
     }
     function swapPrepare(doc){
       const edits = [];
       if (doc.isSwapped) {
-        // подписант нового продавца обязателен (§6.5), пока не нажали «Оставить прежнего»
+        // подписант нового продавца: Должн/Фамилия/Имя обязательны (§6.5), пока не нажали «Оставить прежнего»
         if (!doc.keepSigner) {
-          const missing = [];
-          for (const key of doc._signerKeys || []) {
-            const ov = doc.overrides.get(key);
-            if (!ov) continue;
-            const el = doc.tokens.elems[ov.elemId];
-            if (!el) continue;
-            const a = ov.attr === '#text' ? null : XC.findAttr(el, ov.attr);
-            const cur = ov.value;
-            if (!String(cur).trim()) {
-              const lbl = (a ? a.name : 'текст') + (el.path.includes('ФИО') ? ' (ФИО)' : '');
-              missing.push(lbl);
-            }
+          const missingKeys = swSignerMissingKeys(doc);
+          if (missingKeys.length) {
+            swMarkSigner(doc, missingKeys);
+            const names = missingKeys.map(k => k.split('::').slice(1).join('::'));
+            return { ok: false, error: 'Заполните подписанта нового продавца: ' + names.join(', ') + ' — поля подсвечены красным (СпосПодтПолном и Отчество можно не заполнять). Либо нажмите «Оставить прежнего подписанта».' };
           }
-          if (missing.length) return { ok: false, error: 'Подписант нового продавца не заполнен (' + missing.join(', ') + '). Заполните поля «Подписант» в карточке или нажмите «Оставить прежнего подписанта».' };
+          swMarkSigner(doc, []);
         }
         // номер и дата документа клиента — механизм renum
         const { oldNum, oldDate } = sw.oldValuesFor(doc);
@@ -6422,6 +6547,7 @@ function initUI(){
       for (const doc of sw.docs) {
         if (!doc.loaded || !doc.isSwapped) continue;
         for (const key of doc._signerKeys || []) { doc.overrides.delete(key); }
+        swMarkSigner(doc, []);
         doc.keepSigner = true;
         // перерисовать карточку с восстановленными значениями
         if (doc._cardEl && doc._cardOpts) {
@@ -6432,6 +6558,14 @@ function initUI(){
         n++;
       }
       toast(n ? 'Подписант оставлен прежний' : 'Сначала выполните обмен');
+    });
+    // живая подсветка незаполненных обязательных полей подписанта
+    sw.results.addEventListener('input', e => {
+      const card = e.target.closest('.xc-filecard');
+      if (!card) return;
+      const doc = sw.docs.find(d => d._cardEl === card);
+      if (!doc || !doc.isSwapped || doc.keepSigner) return;
+      swMarkSigner(doc, swSignerMissingKeys(doc));
     });
     sw.downloadBtn.addEventListener('click', () => downloadAll(sw, 'Обмен_сторон_', swapPrepare));
     sw.clearBtn.addEventListener('click', () => clearPanel(sw));
@@ -6554,7 +6688,6 @@ if(window.__markInit) window.__markInit();
 if(window.__lnrInit) window.__lnrInit();
 if(window.__reidInit) window.__reidInit();
 if(window.__pukdInit) window.__pukdInit();
-if(window.__ukdUtils && window.__ukdUtils.openValidation) document.getElementById('xcGlobalValidate').addEventListener('click', () => window.__ukdUtils.openValidation());
 })();
 </script>
 
