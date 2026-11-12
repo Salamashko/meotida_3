@@ -506,6 +506,11 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 
 /* ============ Подвкладки конвертера (xc-subtabs / xc-panel) ============ */
 .xc-subtabs{display:flex;flex-wrap:wrap;gap:8px;max-width:var(--maxw);margin:0 auto;padding:16px 20px 14px;border-bottom:1px solid var(--hair);position:sticky;top:0;z-index:25;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+/* Глобальная кнопка валидации Диадок: вне всех подвкладок, всегда видна (в липкой строке навигации) */
+.xc-validate{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--coral);border:1.5px solid color-mix(in srgb,var(--coral) 55%,#000);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:0 2px 10px color-mix(in srgb,var(--coral) 35%,transparent)}
+.xc-validate:hover{filter:brightness(1.08)}
+.xc-validate:active{transform:translateY(1px)}
+@media(max-width:900px){.xc-validate{margin-left:0;width:100%;justify-content:center}}
 .xc-subbtn{
   --sub:var(--text-3);
   display:inline-flex;align-items:center;gap:8px;
@@ -659,6 +664,7 @@ textarea.xc-bad{border-color:var(--coral)!important}
   <button class="xc-subbtn" type="button" data-sub="swap">Поменять местами Продавца и Покупателя</button>
   <button class="xc-subbtn" type="button" data-sub="raw">Редактор XML (все поля)</button>
   <button class="xc-subbtn" type="button" data-sub="help">Как пользоваться</button>
+  <button class="xc-validate" id="xcGlobalValidate" type="button" title="Открыть сервис проверки XML Диадок в новой вкладке">⛔ Валидация Диадок</button>
 </nav>
 
 <main class="wrap">
@@ -1078,7 +1084,6 @@ textarea.xc-bad{border-color:var(--coral)!important}
     <div class="xc-actions">
       <button class="btn" id="xcU2kApply" type="button">↻ Пересчитать и собрать</button>
       <button class="btn btn-accent2" id="xcU2kDownloadAll" type="button">↓ Скачать всё</button>
-      <button class="btn" id="xcU2kValidate" type="button">Валидация Диадок</button>
       <button class="btn btn-danger" id="xcU2kClear" type="button">✕ Очистить</button>
     </div>
     <div class="validation-note" style="margin-top:12px;padding:11px 13px;border-radius:var(--radius);background:color-mix(in srgb,var(--coral) 8%,transparent);border:1px solid color-mix(in srgb,var(--coral) 30%,transparent);font-size:12.5px;line-height:1.5">После скачивания проверьте УКД в валидаторе Диадок. «Быстрые действия» пересобирают документ — правки, сделанные в редакторе вручную, при этом сбрасываются.</div>
@@ -6027,7 +6032,6 @@ function initUI(){
       u2kLoad(files);
       toast('Пересобрано с учётом быстрых действий');
     });
-    $('xcU2kValidate').addEventListener('click', () => U.openValidation());
     u2k.downloadBtn.addEventListener('click', () => downloadAll(u2k, 'УКД_'));
     u2k.clearBtn.addEventListener('click', () => clearPanel(u2k));
     setupDrop(u2k, u2kLoad);
@@ -6550,6 +6554,7 @@ if(window.__markInit) window.__markInit();
 if(window.__lnrInit) window.__lnrInit();
 if(window.__reidInit) window.__reidInit();
 if(window.__pukdInit) window.__pukdInit();
+if(window.__ukdUtils && window.__ukdUtils.openValidation) document.getElementById('xcGlobalValidate').addEventListener('click', () => window.__ukdUtils.openValidation());
 })();
 </script>
 
