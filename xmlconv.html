@@ -506,11 +506,6 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 
 /* ============ Подвкладки конвертера (xc-subtabs / xc-panel) ============ */
 .xc-subtabs{display:flex;flex-wrap:wrap;gap:8px;max-width:var(--maxw);margin:0 auto;padding:16px 20px 14px;border-bottom:1px solid var(--hair);position:sticky;top:0;z-index:25;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-/* Глобальная кнопка валидации Диадок: вне всех подвкладок, всегда видна (в липкой строке навигации) */
-.xc-validate{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--coral);border:1.5px solid color-mix(in srgb,var(--coral) 55%,#000);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:0 2px 10px color-mix(in srgb,var(--coral) 35%,transparent)}
-.xc-validate:hover{filter:brightness(1.08)}
-.xc-validate:active{transform:translateY(1px)}
-@media(max-width:900px){.xc-validate{margin-left:0;width:100%;justify-content:center}}
 .xc-subbtn{
   --sub:var(--text-3);
   display:inline-flex;align-items:center;gap:8px;
@@ -548,6 +543,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 [data-theme="light"] [data-sub="reid"]{--sub:#A06F14}
 [data-theme="light"] [data-sub="pukd"]{--sub:#2F8590}
 /* ---- цвета подвкладок 6–11 (§4.1) ---- */
+[data-sub="dedup"]{--sub:#E8A2A2}
 [data-sub="iupd"]{--sub:#B39DDB}
 [data-sub="upd2ukd"]{--sub:#E39A8A}
 [data-sub="newupd"]{--sub:#A8C686}
@@ -561,6 +557,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 [data-theme="light"] [data-sub="renum"]{--sub:#8A6640}
 [data-theme="light"] [data-sub="swap"]{--sub:#55667F}
 [data-theme="light"] [data-sub="raw"]{--sub:#8A7A1F}
+[data-theme="light"] [data-sub="dedup"]{--sub:#B04A4A}
 /* ---- светлая тема системная ---- */
 @media (prefers-color-scheme:light){
   :root:not([data-theme="dark"]) [data-sub="ukd"]{--sub:#3F6FA8}
@@ -574,6 +571,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
   :root:not([data-theme="dark"]) [data-sub="renum"]{--sub:#8A6640}
   :root:not([data-theme="dark"]) [data-sub="swap"]{--sub:#55667F}
   :root:not([data-theme="dark"]) [data-sub="raw"]{--sub:#8A7A1F}
+  :root:not([data-theme="dark"]) [data-sub="dedup"]{--sub:#B04A4A}
 }
 
 /* ============ Редактор XC (iupd / renum / raw) ============ */
@@ -637,6 +635,10 @@ textarea.xc-bad{border-color:var(--coral)!important}
 .xc-stickybar .xc-filecount{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.06em;color:var(--text-3);margin-left:auto;white-space:nowrap}
 .xc-fld.xc-missing input,.xc-fld.xc-missing textarea{border-color:var(--coral)!important;background:color-mix(in srgb,var(--coral) 10%,var(--bg-2))}
 .xc-fld.xc-missing label{color:var(--coral)}
+.xc-verdict{border-radius:var(--radius);padding:10px 13px;font-size:13px;line-height:1.55}
+.xc-verdict.ok{background:color-mix(in srgb,var(--emerald) 10%,transparent);border:1px solid color-mix(in srgb,var(--emerald) 35%,transparent);color:var(--emerald)}
+.xc-verdict.warn{background:color-mix(in srgb,var(--amber) 10%,transparent);border:1px solid color-mix(in srgb,var(--amber) 40%,transparent);color:var(--amber)}
+.xc-verdict code{word-break:break-all}
 </style>
 </head>
 <body>
@@ -668,9 +670,9 @@ textarea.xc-bad{border-color:var(--coral)!important}
   <button class="xc-subbtn" type="button" data-sub="newupd">УПД → новый УПД</button>
   <button class="xc-subbtn" type="button" data-sub="renum">УПД → новый номер и дата</button>
   <button class="xc-subbtn" type="button" data-sub="swap">Поменять местами Продавца и Покупателя</button>
+  <button class="xc-subbtn" type="button" data-sub="dedup">Убрать задвоенные коды</button>
   <button class="xc-subbtn" type="button" data-sub="raw">Редактор XML (все поля)</button>
   <button class="xc-subbtn" type="button" data-sub="help">Как пользоваться</button>
-  <button class="xc-validate" id="xcGlobalValidate" type="button" title="Открыть сервис проверки XML Диадок в новой вкладке">⛔ Валидация Диадок</button>
 </nav>
 
 <main class="wrap">
@@ -1090,6 +1092,7 @@ textarea.xc-bad{border-color:var(--coral)!important}
     <div class="xc-actions">
       <button class="btn" id="xcU2kApply" type="button">↻ Пересчитать и собрать</button>
       <button class="btn btn-accent2" id="xcU2kDownloadAll" type="button">↓ Скачать всё</button>
+      <button class="btn" id="xcU2kValidate" type="button">Валидация Диадок</button>
       <button class="btn btn-danger" id="xcU2kClear" type="button">✕ Очистить</button>
     </div>
     <div class="validation-note" style="margin-top:12px;padding:11px 13px;border-radius:var(--radius);background:color-mix(in srgb,var(--coral) 8%,transparent);border:1px solid color-mix(in srgb,var(--coral) 30%,transparent);font-size:12.5px;line-height:1.5">После скачивания проверьте УКД в валидаторе Диадок. «Быстрые действия» пересобирают документ — правки, сделанные в редакторе вручную, при этом сбрасываются.</div>
@@ -1251,6 +1254,32 @@ textarea.xc-bad{border-color:var(--coral)!important}
 </div>
 </section>
 
+<!-- ==================== УБРАТЬ ЗАДВОЕННЫЕ КОДЫ ==================== -->
+<section class="xc-panel" data-sub="dedup">
+<div id="tab-xc-dedup">
+  <div class="eyebrow">ЭДО · дубли кодов маркировки</div>
+  <h1 class="tab-title">Убрать <span class="accent">задвоенные коды</span></h1>
+  <p class="tab-lede">Ищет задвоенные коды маркировки по всему документу — в УПД/иУПД/УКД/иУКД каждый код уникален, даже если повтор встретился в другом товаре. Удаляет все вхождения после первого (вместе со строкой тега), остальное — байт в байт. Строки товаров, суммы и количества не трогаются. После удаления сверяет итоги файла с суммами по строкам: сходится — зелёный статус, расходится — жёлтое предупреждение с разницей (кнопка «Пересчитать итоги» чинит по вашему выбору).</p>
+  <div class="card">
+    <h3>1. Загрузка и настройки</h3>
+    <div class="dropzone" id="xcDedupDrop">
+      <strong>⊕ Перетащите сюда XML или выберите файлы</strong>
+      <div class="dz-sub">можно один или несколько файлов · .xml / .zip (из архива берутся только *.xml)</div>
+      <input type="file" id="xcDedupInput" accept=".xml,.zip,text/xml,application/xml,application/zip" multiple>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label class="xc-check"><input type="checkbox" id="xcDedupUuid" checked> Новый UUID в имени и ИдФайл</label>
+    </div>
+    <div class="xc-actions">
+      <button class="btn btn-accent2" id="xcDedupDownloadAll" type="button">↓ Скачать всё</button>
+      <button class="btn btn-danger" id="xcDedupClear" type="button">✕ Очистить</button>
+    </div>
+    <div id="xcDedupStatus" class="status"></div>
+  </div>
+  <div id="xcDedupResults" class="result-list"></div>
+</div>
+</section>
+
 <!-- ==================== Редактор XML (все поля) ==================== -->
 <section class="xc-panel" data-sub="raw">
 <div id="tab-xc-raw">
@@ -1286,13 +1315,14 @@ textarea.xc-bad{border-color:var(--coral)!important}
 
   <div class="card">
     <h3>О странице</h3>
-    <p>«Универсальный конвертер XML» объединяет пять рабочих инструментов:</p>
+    <p>«Универсальный конвертер XML» объединяет шесть рабочих инструментов:</p>
     <ul>
       <li><b>УКД → иУКД</b> — конвертер корректировочных документов ЭДО.</li>
       <li><b>Вывод кодов (СвВыбытияМАРК)</b> — добавляет в УПД признак вывода кодов из оборота для собственных нужд.</li>
       <li><b>ЛДНР в ЭДО без кодов</b> — убирает из УПД все коды маркировки и ставит новый ID.</li>
       <li><b>Замена ID</b> — меняет UUID документа (имя файла и ИдФайл) на новый и показывает тип документа и номера.</li>
       <li><b>Правильный УКД (До и После)</b> — проверяет коды «До/После» в УКД: убирает одинаковые «После» или даёт отредактировать их списком.</li>
+      <li><b>Убрать задвоенные коды</b> — находит повторяющиеся коды маркировки по всему документу и удаляет повторы (Диадок на такие файлы отвечает «имеется дубль кода маркировки»).</li>
     </ul>
     <p class="note">Все инструменты работают локально в браузере — данные никуда не отправляются. Тему (светлая / тёмная) переключает кнопка в правом верхнем углу. Почти у каждого инструмента есть инструкция внутри карточки.</p>
   </div>
@@ -4468,6 +4498,120 @@ function deleteNamedRow(text, name){
   return { ok: true, text: text.slice(0, from) + text.slice(el.outerEnd), removed: true };
 }
 
+// ---------- «Убрать задвоенные коды»: сбор кодов маркировки по всему документу ----------
+// Код = НомУпак/КИЗ (текст) или НомСредИдентТов@ИдентТрансУпак (атрибут, как в §4.3 п.8).
+// Повторы ищутся по ВСЕМУ документу (код маркировки глобально уникален), сравнение — раскодированное.
+function markCodeEntries(text, elems){
+  const out = [];
+  const ownerOf = new Map();
+  let текСвед = null;
+  for (const el of elems) {
+    if (el.name === 'СведТов') {
+      const ns = findAttr(el, 'НомСтр'), nm = findAttr(el, 'НаимТов');
+      текСвед = { номСтр: ns ? ns.value : '', наимТов: nm ? nm.value : '' };
+    }
+    if (текСвед) ownerOf.set(el.id, текСвед);
+  }
+  for (const el of elems) {
+    if (el.selfClosing && el.name === 'НомСредИдентТов') {
+      const a = findAttr(el, 'ИдентТрансУпак');
+      if (a) out.push({ elemId: el.id, kind: 'attr', code: a.value, owner: ownerOf.get(el.id) || { номСтр: '', наимТов: '' }, range: { start: el.outerStart, end: el.outerEnd } });
+      continue;
+    }
+    if ((el.name === 'НомУпак' || el.name === 'КИЗ') && el.text) {
+      out.push({ elemId: el.id, kind: 'tag', tag: el.name, code: el.text.value, owner: ownerOf.get(el.id) || { номСтр: '', наимТов: '' }, range: { start: el.outerStart, end: el.outerEnd } });
+    }
+  }
+  return out;
+}
+function findDupCodes(entries){
+  const groups = new Map();
+  for (const e of entries) {
+    if (!groups.has(e.code)) groups.set(e.code, []);
+    groups.get(e.code).push(e);
+  }
+  const dups = [];
+  for (const [code, occ] of groups) {
+    if (occ.length < 2) continue;
+    dups.push({ code, total: occ.length, occ, remove: occ.slice(1) });
+  }
+  return dups;
+}
+// Удаление лишних вхождений (все после первого) — целиком строка тега с отступом и переносом
+function dedupTransform(text){
+  const t = tokenize(text);
+  if (t.err) return { ok: false, error: 'XML повреждён: ' + t.err };
+  const entries = markCodeEntries(text, t.elems);
+  const dups = findDupCodes(entries);
+  const edits = [];
+  for (const d of dups) for (const e of d.remove) {
+    const before = text.slice(Math.max(0, e.range.start - 200), e.range.start);
+    const wm = /(?:\r?\n)[ \t]*$/.exec(before);
+    const from = wm ? e.range.start - wm[0].length : e.range.start;
+    edits.push({ start: from, end: e.range.end, newRaw: '' });
+  }
+  if (!edits.length) return { ok: true, text, dups: [], removedCount: 0, kept: entries.length };
+  const out = applyEdits(text, edits);
+  const t2 = tokenize(out);
+  if (t2.err) return { ok: false, error: 'После удаления дублей XML повреждён: ' + t2.err };
+  return { ok: true, text: out, dups, removedCount: edits.length, kept: entries.length - edits.length };
+}
+// ---------- Сверка итогов с суммами по строкам (замечание владелицы «чтобы сумма была верная») ----------
+// УПД: ВсегоОпл@СтТовБезНДСВсего/СтТовУчНалВсего/КолНеттоВс; УКД: ВсегоУвел/ВсегоУм (СтоимУвел/СтоимУм/СумНДС).
+function totalsCheck(text, elems){
+  const checks = [];
+  const num = v => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isNaN(n) ? null : n; };
+  const attrByPrefix = (el, prefix) => { for (const a of el.attrs) if (a.name.indexOf(prefix) === 0) return a; return null; };
+  const всегоОпл = firstElem(elems, 'ВсегоОпл');
+  const табл = firstElem(elems, 'ТаблСчФакт');
+  if (всегоОпл && табл) {
+    const rows = elems.filter(x => x.parent === табл.id && x.name === 'СведТов');
+    const sumAttr = attr => rows.reduce((s, r) => { const a = findAttr(r, attr); const v = num(a ? a.value : null); return v != null ? s + v : s; }, 0);
+    const checkAttr = (attrIn, want) => {
+      const a = attrByPrefix(всегоОпл, attrIn);
+      if (!a) return;
+      const inFile = num(a.value);
+      const byRows = round2(want);
+      const diff = inFile != null ? round2(Math.abs(inFile - byRows)) : null;
+      checks.push({ label: 'ВсегоОпл @' + a.name, inFile: a.value, byRows: fmtSum(byRows), diff: diff != null ? fmtSum(diff) : '?', ok: diff != null && diff <= 0.01 });
+    };
+    checkAttr('СтТовБезНДСВсего', sumAttr('СтТовБезНДС'));
+    checkAttr('СтТовУчНалВсего', sumAttr('СтТовУчНал'));
+    checkAttr('КолНеттоВ', sumAttr('КолТов'));
+  }
+  // УКД: ВсегоУвел/ВсегоУм
+  const таблК = firstElem(elems, 'ТаблКСчФ');
+  for (const имя of ['ВсегоУвел', 'ВсегоУм']) {
+    const итог = firstElem(elems, имя);
+    if (!итог || !таблК) continue;
+    const rows = elems.filter(x => x.parent === таблК.id && x.name === 'СведТов');
+    const dir = имя === 'ВсегоУвел' ? 'Увел' : 'Ум';
+    const sumRowAttr = (tag, attr) => rows.reduce((s, r) => { const бл = childOf(elems, r, tag); if (!бл) return s; const a = findAttr(бл, attr); const v = num(a ? a.value : null); return v != null ? s + v : s; }, 0);
+    const sumRowText = (containerTag, pathTag) => rows.reduce((s, r) => { const бл = childOf(elems, r, containerTag); if (!бл) return s; const t2 = childOf(elems, бл, pathTag); const v = num(t2 && t2.text ? t2.text.value : null); return v != null ? s + v : s; }, 0);
+    const checkAttr2 = (attrIn, want) => {
+      const a = findAttr(итог, attrIn);
+      if (!a) return;
+      const inFile = num(a.value);
+      const byRows = round2(want);
+      const diff = inFile != null ? round2(Math.abs(inFile - byRows)) : null;
+      checks.push({ label: имя + ' @' + attrIn, inFile: a.value, byRows: fmtSum(byRows), diff: diff != null ? fmtSum(diff) : '?', ok: diff != null && diff <= 0.01 });
+    };
+    const checkText2 = (label, want) => {
+      const сумВ = childOf(elems, итог, 'СумНал');
+      const сум = сумВ ? childOf(elems, сумВ, 'СумНДС') : null;
+      if (!сум || !сум.text) return;
+      const inFile = num(сум.text.value);
+      const byRows = round2(want);
+      const diff = inFile != null ? round2(Math.abs(inFile - byRows)) : null;
+      checks.push({ label: label, inFile: сум.text.value, byRows: fmtSum(byRows), diff: diff != null ? fmtSum(diff) : '?', ok: diff != null && diff <= 0.01 });
+    };
+    checkAttr2('СтТовБезНДСВсего', sumRowAttr('СтТовБезНДС', 'Стоим' + dir));
+    checkAttr2('СтТовУчНалВсего', sumRowAttr('СтТовУчНал', 'Стоим' + dir));
+    checkText2(имя + ' › СумНал › СумНДС', sumRowText('СумНалРазн', 'Сум' + dir));
+  }
+  return checks.length ? { checks, ok: checks.every(c => c.ok) } : null;
+}
+
 // Возвращает информацию для вставки <ИспрДок …/> первым дочерним в <СвСчФакт …>
 // (отступ и перевод строки — как у соседних строк) или признак, что ИспрДок уже есть.
 function iupdInsertEdit(text, elems){
@@ -4496,6 +4640,7 @@ window.XC = {
   findRenumberPlaces, isDefaultRenumberPlace, iupdInsertEdit,
   partyName, dirOf, UKD_TPL, buildUkdFromUpd, swapTransform,
   productsOf, renumberProducts, deleteProductRow, duplicateProductRow, moveProductRow,
+  markCodeEntries, findDupCodes, dedupTransform, totalsCheck,
   deleteRowByLoc, cloneRowAfter, deleteNamedRow,
   escAttr, escText
 };
@@ -5328,6 +5473,8 @@ function initUI(){
       { panel: '.xc-panel[data-sub="newupd"]', cfgs: [{ btnSel: '#xcNuDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcNuResults') }] },
       { panel: '.xc-panel[data-sub="renum"]', cfgs: [{ btnSel: '#xcRenumDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcRenumResults') }] },
       { panel: '.xc-panel[data-sub="swap"]', cfgs: [{ btnSel: '#xcSwapDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcSwapResults') }] },
+      { panel: '.xc-panel[data-sub="dedup"]', cfgs: [{ btnSel: '#xcDedupDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcDedupResults') }] },
+      { panel: '.xc-panel[data-sub="dedup"]', cfgs: [{ btnSel: '#xcDedupDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcDedupResults') }] },
       { panel: '.xc-panel[data-sub="raw"]', cfgs: [{ btnSel: '#xcRawDownloadAll', label: '↓ Скачать всё', countFn: xcDocs('#xcRawResults') }] }
     ];
     for (const { panel, cfgs } of cfgAll) {
@@ -5335,6 +5482,164 @@ function initUI(){
       if (el) makeStickyBar(el, cfgs);
     }
   })();
+
+  /* ---------- ПОДВКЛАДКА dedup: Убрать задвоенные коды ---------- */
+  const dd = {
+    drop: $('xcDedupDrop'), input: $('xcDedupInput'), results: $('xcDedupResults'),
+    statusBox: $('xcDedupStatus'), uuid: $('xcDedupUuid'),
+    downloadBtn: $('xcDedupDownloadAll'), clearBtn: $('xcDedupClear'),
+    docs: [], used: new Set()
+  };
+  if (dd.drop) {
+    function ddPostProcess(doc){
+      doc.docType = RU.detectDocType(idFileValue(doc), doc.name, doc.text);
+      const r = XC.dedupTransform(doc.text);
+      if (!r.ok) throw new Error(r.error);
+      doc.text = r.text;
+      doc.tokens = tokenize(doc.text);
+      doc._dedup = { dups: r.dups, removedCount: r.removedCount || 0, kept: r.kept };
+      doc._totals = XC.totalsCheck(doc.text, doc.tokens.elems);
+      doc._uuidOpts = { setUuid: dd.uuid.checked, dateToday: false };
+      refreshDocName(doc, doc._uuidOpts);
+      doc.loaded = true;
+    }
+    function ddVerdictText(doc){
+      const tt = doc._totals;
+      if (!tt) return null;
+      if (tt.ok) {
+        const parts = tt.checks.map(c => c.label.replace('ВсегоОпл @', '').replace('ВсегоУвел @', '').replace('ВсегоУм @', '') + ' ' + c.inFile);
+        return { cls: 'ok', text: 'Итоги сходятся: ' + parts.join(', ') + '.' };
+      }
+      const bad = tt.checks.filter(c => !c.ok).map(c => c.label + ' «' + c.inFile + '», по строкам «' + c.byRows + '» (разница «' + c.diff + '»)');
+      return { cls: 'warn', text: 'Итоги файла не сходятся с суммами строк: ' + bad.join('; ') + '. Проверьте документ — возможно, строка товара удалялась вручную без пересчёта. Нажмите «Пересчитать итоги», чтобы проставить суммы по строкам (по вашему выбору).' };
+    }
+    function ddRecalcTotals(doc){
+      const elems = doc.tokens.elems;
+      const num = v => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isNaN(n) ? null : n; };
+      const всегоОпл = XC.firstElem(elems, 'ВсегоОпл');
+      const табл = XC.firstElem(elems, 'ТаблСчФакт');
+      let n = 0;
+      if (всегоОпл && табл) {
+        const rows = elems.filter(x => x.parent === табл.id && x.name === 'СведТов');
+        const setS = (attrIn, attrRow) => {
+          let a = null;
+          for (const aa of всегоОпл.attrs) if (aa.name.indexOf(attrIn) === 0) { a = aa; break; }
+          if (doc.overrides.has(всегоОпл.id + '::' + a.name)) return;
+          const want = rows.reduce((s, r) => { const b = XC.findAttr(r, attrRow); const v = num(b ? b.value : null); return v != null ? s + v : s; }, 0);
+          setOverride(doc, всегоОпл.id, a.name, XC.fmtSum(want), a.value);
+          n++;
+        };
+        setS('СтТовБезНДСВсего', 'СтТовБезНДС');
+        setS('СтТовУчНалВсего', 'СтТовУчНал');
+        setS('КолНеттоВ', 'КолТов');
+      }
+      const таблК = XC.firstElem(elems, 'ТаблКСчФ');
+      for (const имя of ['ВсегоУвел', 'ВсегоУм']) {
+        const итог = XC.firstElem(elems, имя);
+        if (!итог || !таблК) continue;
+        const rows = elems.filter(x => x.parent === таблК.id && x.name === 'СведТов');
+        const dir = имя === 'ВсегоУвел' ? 'Увел' : 'Ум';
+        const sumRowAttr = (tag, attr) => rows.reduce((s, r) => { const бл = XC.childOf(elems, r, tag); if (!бл) return s; const a = XC.findAttr(бл, attr); const v = num(a ? a.value : null); return v != null ? s + v : s; }, 0);
+        const sumRowText = (cont, path) => rows.reduce((s, r) => { const бл = XC.childOf(elems, r, cont); if (!бл) return s; const t3 = XC.childOf(elems, бл, path); const v = num(t3 && t3.text ? t3.text.value : null); return v != null ? s + v : s; }, 0);
+        const upd = (attrIn, want) => { const a = XC.findAttr(итог, attrIn); if (!a) return; setOverride(doc, итог.id, a.name, XC.fmtSum(want), a.value); n++; };
+        upd('СтТовБезНДСВсего', sumRowAttr('СтТовБезНДС', 'Стоим' + dir));
+        upd('СтТовУчНалВсего', sumRowAttr('СтТовУчНал', 'Стоим' + dir));
+        const сумВ = XC.childOf(elems, итог, 'СумНал');
+        const сум = сумВ ? XC.childOf(elems, сумВ, 'СумНДС') : null;
+        if (сум && сум.text) { setOverride(doc, сум.id, '#text', XC.fmtSum(sumRowText('СумНалРазн', 'Сум' + dir)), сум.text.value); n++; }
+      }
+      // пересчитать вердикт по итоговому тексту
+      const res = buildFinal(doc);
+      if (res.ok) {
+        const t2 = tokenize(res.text);
+        doc._totals = XC.totalsCheck(res.text, t2.elems);
+      }
+      return n;
+    }
+    function ddLoad(fileList){
+      clearPanel(dd);
+      loadDocs(dd, fileList, ddPostProcess).then(docs => {
+        dd.docs = docs;
+        const bad = docs.filter(d => d.loadError);
+        const good = docs.filter(d => !d.loadError);
+        const withDups = good.filter(d => d._dedup.dups.length);
+        const mismatch = good.filter(d => d._totals && !d._totals.ok);
+        if (bad.length) setStatus(dd.statusBox, 'err', 'Не обработаны: ' + bad.map(d => d.name + ' — ' + d.loadError).join('; '));
+        else if (!good.length) setStatus(dd.statusBox, 'err', 'Файлы не распознаны.');
+        else if (mismatch.length) setStatus(dd.statusBox, 'warn', (withDups.length ? 'Задвоения удалены. ' : 'Задвоенных кодов не найдено — файл отдаётся как есть. ') + 'Итоги файла не сходятся с суммами строк (см. карточки) — можно нажать «Пересчитать итоги».');
+        else if (withDups.length) setStatus(dd.statusBox, 'ok', 'Удалено лишних вхождений кодов: ' + withDups.reduce((s, d) => s + d._dedup.removedCount, 0) + '. Итоги сходятся.');
+        else setStatus(dd.statusBox, 'ok', 'Задвоенных кодов не найдено — файл отдаётся как есть (с новым UUID в имени и ИдФайл, если галочка включена).');
+        for (const doc of docs) {
+          if (doc.loadError) { renderErrorCard(dd, doc); continue; }
+          renderDocCard(dd, doc, { controls: (body, d) => ddControls(body, d) });
+        }
+      }).catch(err => setStatus(dd.statusBox, 'err', (err && err.message) || String(err)));
+    }
+    function ddControls(body, doc){
+      const d = doc._dedup;
+      const dupBox = document.createElement('div');
+      if (!d.dups.length) {
+        dupBox.className = 'xc-verdict ok';
+        dupBox.textContent = 'Задвоенных кодов не найдено' + (dd.uuid.checked ? ' — файл отдаётся как есть (с новым UUID в имени и ИдФайл)' : ' — файл отдаётся как есть') + '.';
+      } else {
+        dupBox.className = 'xc-verdict warn';
+        dupBox.innerHTML = 'Найдено задвоений: <b>' + d.dups.length + '</b> (лишних вхождений удалено: ' + d.removedCount + '; осталось кодов: ' + d.kept + ')';
+        const list = document.createElement('details');
+        if (d.dups.length <= 10) list.open = true; // больше 10 групп — список свёрнут
+        const sumEl = document.createElement('summary');
+        sumEl.textContent = 'Показать задвоенные коды';
+        list.appendChild(sumEl);
+        const listBox = document.createElement('div');
+        listBox.className = 'xc-difflist';
+        listBox.style.marginTop = '8px';
+        for (const dup of d.dups) {
+          const row = document.createElement('div');
+          row.className = 'xc-diffitem';
+          const where = dup.occ.map(o => 'стр. ' + o.owner.номСтр + ' (товар: ' + (o.owner.наимТов || '?') + ')').join(', ');
+          row.innerHTML = '<div class="p"><code>' + escHtml(dup.code) + '</code> ×' + dup.total + '</div><div class="was">' + escHtml(where) + '</div>';
+          listBox.appendChild(row);
+        }
+        list.appendChild(listBox);
+        dupBox.appendChild(list);
+      }
+      body.appendChild(dupBox);
+      // сверка итогов
+      const v = ddVerdictText(doc);
+      const verdict = document.createElement('div');
+      verdict.className = 'xc-verdict xc-verdict-totals ' + (v ? v.cls : 'ok');
+      verdict.textContent = v ? v.text : 'Итоги в файле не найдены — сверка не выполнялась.';
+      body.appendChild(verdict);
+      doc._verdictEl = verdict;
+      if (v && !v.ok) {
+        const recalcRow = document.createElement('div');
+        recalcRow.className = 'xc-hint-row';
+        const recalcBtn = document.createElement('button');
+        recalcBtn.type = 'button'; recalcBtn.className = 'btn btn-sm';
+        recalcBtn.textContent = '🧮 Пересчитать итоги по строкам';
+        recalcBtn.addEventListener('click', () => {
+          try {
+            const n = ddRecalcTotals(doc);
+            if (!n) { toast('Итоги в файле не найдены'); return; }
+            const v2 = ddVerdictText(doc);
+            if (v2 && doc._verdictEl) { doc._verdictEl.className = 'xc-verdict xc-verdict-totals ' + v2.cls; doc._verdictEl.textContent = v2.text; }
+            toast('Итоги пересчитаны по строкам (' + n + ' значений)');
+          } catch (err) { toast((err && err.message) || String(err)); }
+        });
+        recalcRow.appendChild(recalcBtn);
+        const note = document.createElement('span');
+        note.className = 'mini';
+        note.textContent = 'Проставит в итогах суммы по строкам с учётом правок. Изменения видны в «Было → Стало».';
+        recalcRow.appendChild(note);
+        body.appendChild(recalcRow);
+      }
+    }
+    dd.uuid.addEventListener('change', () => {
+      for (const doc of dd.docs) if (doc.loaded) { doc._uuidOpts.setUuid = dd.uuid.checked; refreshDocName(doc, doc._uuidOpts); }
+    });
+    dd.downloadBtn.addEventListener('click', () => downloadAll(dd, 'Без_дублей_'));
+    dd.clearBtn.addEventListener('click', () => clearPanel(dd));
+    setupDrop(dd, ddLoad);
+  }
 
   /* ---------- Карточки УПД/иУПД (§7, §8.1) — для iupd/renum/newupd/swap ---------- */
   // occ элемента среди одноимённых (для структурных правок по локатору path+occ)
@@ -6132,6 +6437,7 @@ function initUI(){
       u2kLoad(files);
       toast('Пересобрано с учётом быстрых действий');
     });
+    $('xcU2kValidate').addEventListener('click', () => U.openValidation());
     u2k.downloadBtn.addEventListener('click', () => downloadAll(u2k, 'УКД_'));
     u2k.clearBtn.addEventListener('click', () => clearPanel(u2k));
     setupDrop(u2k, u2kLoad);
@@ -6692,7 +6998,6 @@ if(window.__markInit) window.__markInit();
 if(window.__lnrInit) window.__lnrInit();
 if(window.__reidInit) window.__reidInit();
 if(window.__pukdInit) window.__pukdInit();
-if(window.__ukdUtils && window.__ukdUtils.openValidation) document.getElementById('xcGlobalValidate').addEventListener('click', () => window.__ukdUtils.openValidation());
 })();
 </script>
 
