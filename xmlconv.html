@@ -4612,6 +4612,189 @@ function totalsCheck(text, elems){
   return checks.length ? { checks, ok: checks.every(c => c.ok) } : null;
 }
 
+// ---------- «Убрать задвоенные коды»: объединение строк-дубликатов (уточнение владелицы) ----------
+// Строки СведТов связаны, если у них есть общий код маркировки (транзитивно). Объединять можно
+// только при равных НаимТов/ОКЕИ_Тов/ЦенаТов/НалСт: остаётся ПЕРВАЯ строка — КолТов/СтТовБезНДС/
+// СтТовУчНал/СумНал = суммы, коды = все уникальные группы (недостающие переносятся), остальные
+// строки удаляются целиком, НомСтр перенумеровывается. Если связанные строки различаются ценой/НДС —
+// объединять нельзя: дубли-коды удаляются по-старому (лишние вхождения строкой), жёлтое предупреждение.
+function dedupSmart(text){
+  const t = tokenize(text);
+  if (t.err) return { ok: false, error: 'XML повреждён: ' + t.err };
+  const elems = t.elems;
+  const rows = productsOf(elems);
+  const stats = { mergedGroups: [], renumbered: [], intraRemoved: 0, nonMergeable: [], rowsBefore: rows.length, rowsAfter: rows.length };
+  if (!rows.length) return { ok: true, text, stats, changed: false };
+  const entries = markCodeEntries(text, elems);
+  const rowIndexOf = new Map();
+  rows.forEach((r, i) => rowIndexOf.set(r.id, i));
+  const nearestRow = el => { let p = el.parent; while (p >= 0) { if (rowIndexOf.has(p)) return rowIndexOf.get(p); p = elems[p].parent; } return -1; };
+  // связность строк по общим кодам (транзитивно)
+  const parent = rows.map((_, i) => i);
+  const find = i => parent[i] === i ? i : (parent[i] = find(parent[i]));
+  const union = (a, b) => { a = find(a); b = find(b); if (a !== b) parent[b] = a; };
+  const byCode = new Map();
+  for (const e of entries) {
+    e.rowIndex = nearestRow(elems[e.elemId]);
+    if (e.rowIndex < 0) continue;
+    if (byCode.has(e.code)) { for (const other of byCode.get(e.code)) union(e.rowIndex, other.rowIndex); byCode.get(e.code).push(e); }
+    else byCode.set(e.code, [e]);
+  }
+  const groups = new Map();
+  rows.forEach((_, i) => { const root = find(i); if (!groups.has(root)) groups.set(root, []); groups.get(root).push(i); });
+  const multi = [...groups.values()].filter(g => g.length >= 2);
+  const edits = [];
+  const lineFrom = pos => {
+    const before = text.slice(Math.max(0, pos - 200), pos);
+    const wm = /(?:\r?\n)[ \t]*$/.exec(before);
+    return wm ? pos - wm[0].length : pos;
+  };
+  const val = (el, attr) => { const a = el && findAttr(el, attr); return a ? a.value : ''; };
+  const num = v => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isNaN(n) ? null : n; };
+  // обработка групп
+  for (const grp of multi) {
+    const keepIdx = grp[0]; // первая строка остаётся
+    const keep = rows[keepIdx];
+    const gRows = grp.map(i => rows[i]);
+    const mergeable = ['НаимТов', 'ОКЕИ_Тов', 'ЦенаТов', 'НалСт'].every(attr => {
+      const v0 = val(keep, attr);
+      return gRows.every(r => val(r, attr) === v0);
+    });
+    const codes = []; // все вхождения группы в порядке документа
+    for (const e of entries) if (e.rowIndex >= 0 && grp.includes(e.rowIndex)) codes.push(e);
+    const seenCodes = new Set();
+    const uniqueCodes = [];
+    for (const e of codes) { if (!seenCodes.has(e.code)) { seenCodes.add(e.code); uniqueCodes.push(e); } }
+    if (!mergeable) {
+      // объединить нельзя: удаляем лишние вхождения кодов строкой, строки не трогаем
+      const seen2 = new Set();
+      for (const e of codes) {
+        if (seen2.has(e.code)) edits.push({ start: lineFrom(e.range.start), end: e.range.end, newRaw: '' });
+        else seen2.add(e.code);
+      }
+      stats.nonMergeable.push({
+        rows: gRows.map(r => ({ номСтр: val(r, 'НомСтр'), наимТов: val(r, 'НаимТов') })),
+        reason: ['ЦенаТов', 'НалСт', 'ОКЕИ_Тов', 'НаимТов'].filter(attr => { const v0 = val(keep, attr); return !gRows.every(r => val(r, attr) === v0); }).join(', ')
+      });
+      continue;
+    }
+    // объединяемая группа
+    const sumOf = attr => round2(gRows.reduce((s, r) => { const v = num(val(r, attr)); return v != null ? s + v : s; }, 0));
+    const колСум = fmtSum(sumOf('КолТов'));
+    const безСум = fmtSum(sumOf('СтТовБезНДС'));
+    const учСум = fmtSum(sumOf('СтТовУчНал'));
+    // СумНал: сумма <СумНал><СумНал> по строкам, где он числом; <БезНДС> — не трогаем
+    let сумСум = 0; let hasСум = false;
+    for (const r of gRows) { const сН = childOf(elems, r, 'СумНал'); const с = сН ? childOf(elems, сН, 'СумНал') : null; if (с && с.text) { const v = num(с.text.value); if (v != null) { сумСум += v; hasСум = true; } } }
+    // правки: суммы в оставшейся строке
+    const aКол = findAttr(keep, 'КолТов'), aБез = findAttr(keep, 'СтТовБезНДС'), aУч = findAttr(keep, 'СтТовУчНал');
+    if (aКол) edits.push({ start: aКол.valStart, end: aКол.valEnd, newRaw: escAttr(колСум) });
+    if (aБез) edits.push({ start: aБез.valStart, end: aБез.valEnd, newRaw: escAttr(безСум) });
+    if (aУч) edits.push({ start: aУч.valStart, end: aУч.valEnd, newRaw: escAttr(учСум) });
+    const сН0 = childOf(elems, keep, 'СумНал');
+    const с0 = сН0 ? childOf(elems, сН0, 'СумНал') : null;
+    if (с0 && с0.text && hasСум) edits.push({ start: с0.text.start, end: с0.text.end, newRaw: escText(fmtSum(round2(сумСум))) });
+    // удаление остальных строк группы целиком
+    for (let k = 1; k < grp.length; k++) {
+      const r = rows[grp[k]];
+      edits.push({ start: lineFrom(r.outerStart), end: r.outerEnd, newRaw: '' });
+    }
+    // повторяющиеся коды внутри оставшейся строки — убрать (после первого)
+    const seenKeep = new Set();
+    for (const e of codes) {
+      if (e.rowIndex !== keepIdx) continue;
+      if (seenKeep.has(e.code) && e.kind === 'tag') edits.push({ start: lineFrom(e.range.start), end: e.range.end, newRaw: '' });
+      else seenKeep.add(e.code);
+    }
+    // недостающие уникальные коды (есть только в удалённых строках) — перенести в оставшуюся
+    const keepCodes = new Set(codes.filter(e => e.rowIndex === keepIdx).map(e => e.code));
+    const нит = childOf(elems, keep, 'ДопСведТов') ? null : null;
+    const допСв = childOf(elems, keep, 'ДопСведТов');
+    const нит0 = допСв ? childOf(elems, допСв, 'НомСредИдентТов') : null;
+    if (нит0 && !нит0.selfClosing) {
+      const missing = uniqueCodes.filter(e => !keepCodes.has(e.code));
+      if (missing.length) {
+        const childBefore = elems.filter(x => x.parent === нит0.id).pop();
+        const childSample = childBefore || нит0;
+        const before = text.slice(Math.max(0, (childBefore ? childBefore.outerEnd : нит0.innerStart) - 120), (childBefore ? childBefore.outerEnd : нит0.innerStart));
+        const wm2 = /(?:\r?\n)([ \t]*)$/.exec(before);
+        const indent = wm2 ? wm2[1] : '          ';
+        const le = wm2 ? (wm2[0].charAt(0) === '\r' ? '\r\n' : '\n') : '\r\n';
+        const lines = missing.map(e => e.kind === 'attr'
+          ? indent + '<НомСредИдентТов ИдентТрансУпак="' + escAttr(e.code) + '" />'
+          : indent + '<' + (e.tag || 'НомУпак') + '>' + escText(e.code) + '</' + (e.tag || 'НомУпак') + '>');
+        const at = childBefore ? childBefore.outerEnd : нит0.innerStart;
+        edits.push({ start: at, end: at, newRaw: le + lines.join(le) });
+      }
+    }
+    // ИнфПолФХЖ2 удалённых строк — перечислить в карточке
+    const инф2Удал = [];
+    for (let k = 1; k < grp.length; k++) {
+      const r = rows[grp[k]];
+      const и2 = childOf(elems, r, 'ИнфПолФХЖ2');
+      if (!и2) continue;
+      for (const row of elems.filter(x => x.parent === и2.id)) {
+        const ид = findAttr(row, 'Идентиф'), зн = findAttr(row, 'Значен');
+        if (ид) инф2Удал.push({ идентиф: ид.value, значен: зн ? зн.value : '' });
+      }
+    }
+    stats.mergedGroups.push({
+      keepНомСтр: val(keep, 'НомСтр'),
+      rows: gRows.map(r => ({ номСтр: val(r, 'НомСтр'), наимТов: val(r, 'НаимТов'), колТов: val(r, 'КолТов') })),
+      колТов: колСум, безСум: безСум, учСум: учСум, codes: uniqueCodes.length,
+      инфПолФХЖ2: инф2Удал
+    });
+  }
+  // задвоения внутри одной строки (старый сценарий): убрать лишние строки кода
+  for (const [code, list] of byCode) {
+    if (list.length < 2) continue;
+    const roots = new Set(list.map(e => e.rowIndex));
+    if (roots.size > 1) continue; // межстрочные — обработаны группами выше
+    const seenIn = new Set();
+    for (const e of list) {
+      if (seenIn.has(e.rowIndex)) { edits.push({ start: lineFrom(e.range.start), end: e.range.end, newRaw: '' }); stats.intraRemoved++; }
+      else seenIn.add(e.rowIndex);
+    }
+  }
+  if (!edits.length) return { ok: true, text, stats, changed: false };
+  let out;
+  try { out = applyEdits(text, edits); }
+  catch (e) { return { ok: false, error: (e && e.message) || String(e) }; }
+  // перенумерация НомСтр 1..N
+  const t2 = tokenize(out);
+  if (t2.err) return { ok: false, error: 'XML повреждён после объединения: ' + t2.err };
+  const rows2 = productsOf(t2.elems);
+  stats.rowsAfter = rows2.length;
+  const oldNums = rows.map(r => val(r, 'НомСтр'));
+  const newNumsBefore = rows2.map(r => val(r, 'НомСтр'));
+  const editsNum = [];
+  rows2.forEach((r, i) => { const a = findAttr(r, 'НомСтр'); const want = String(i + 1); if (a && a.value !== want) editsNum.push({ start: a.valStart, end: a.valEnd, newRaw: escAttr(want) }); });
+  let out2 = out;
+  if (editsNum.length) {
+    out2 = applyEdits(out, editsNum);
+    // список «стр. X → Y» по СТАРЫМ номерам строк (до объединения),
+    stats.renumbered = oldNums.slice(0).map((old, i) => ({ from: old, to: null })).filter(Boolean);
+    // сопоставление: исходная строка i — где она теперь (после удалений): старые строки,
+    // не попавшие в удалённые группы, получают новый номер по порядку
+    const removedOld = [];
+    for (const mg of stats.mergedGroups) for (let k = 1; k < mg.rows.length; k++) removedOld.push(Number(mg.rows[k].номСтр));
+    const removedSet = new Set(removedOld);
+    let nn = 0;
+    stats.renumbered = [];
+    for (const old of oldNums) {
+      if (removedSet.has(Number(old))) continue;
+      nn++;
+      if (String(nn) !== old) stats.renumbered.push({ from: old, to: String(nn) });
+    }
+  }
+  const t3 = tokenize(out2);
+  if (t3.err) return { ok: false, error: 'XML повреждён после перенумерации: ' + t3.err };
+  stats.codesBefore = entries.length;
+  stats.codesAfter = markCodeEntries(out2, t3.elems).length;
+  return { ok: true, text: out2, stats, changed: true };
+}
+
+
 // Возвращает информацию для вставки <ИспрДок …/> первым дочерним в <СвСчФакт …>
 // (отступ и перевод строки — как у соседних строк) или признак, что ИспрДок уже есть.
 function iupdInsertEdit(text, elems){
@@ -4640,7 +4823,7 @@ window.XC = {
   findRenumberPlaces, isDefaultRenumberPlace, iupdInsertEdit,
   partyName, dirOf, UKD_TPL, buildUkdFromUpd, swapTransform,
   productsOf, renumberProducts, deleteProductRow, duplicateProductRow, moveProductRow,
-  markCodeEntries, findDupCodes, dedupTransform, totalsCheck,
+  markCodeEntries, findDupCodes, dedupTransform, totalsCheck, dedupSmart,
   deleteRowByLoc, cloneRowAfter, deleteNamedRow,
   escAttr, escText
 };
@@ -5493,11 +5676,11 @@ function initUI(){
   if (dd.drop) {
     function ddPostProcess(doc){
       doc.docType = RU.detectDocType(idFileValue(doc), doc.name, doc.text);
-      const r = XC.dedupTransform(doc.text);
+      const r = XC.dedupSmart(doc.text);
       if (!r.ok) throw new Error(r.error);
       doc.text = r.text;
       doc.tokens = tokenize(doc.text);
-      doc._dedup = { dups: r.dups, removedCount: r.removedCount || 0, kept: r.kept };
+      doc._stats = r.stats;
       doc._totals = XC.totalsCheck(doc.text, doc.tokens.elems);
       doc._uuidOpts = { setUuid: dd.uuid.checked, dateToday: false };
       refreshDocName(doc, doc._uuidOpts);
@@ -5562,12 +5745,12 @@ function initUI(){
         dd.docs = docs;
         const bad = docs.filter(d => d.loadError);
         const good = docs.filter(d => !d.loadError);
-        const withDups = good.filter(d => d._dedup.dups.length);
+        const mergedCount = good.filter(d => d._stats.mergedGroups.length).length;
         const mismatch = good.filter(d => d._totals && !d._totals.ok);
         if (bad.length) setStatus(dd.statusBox, 'err', 'Не обработаны: ' + bad.map(d => d.name + ' — ' + d.loadError).join('; '));
         else if (!good.length) setStatus(dd.statusBox, 'err', 'Файлы не распознаны.');
-        else if (mismatch.length) setStatus(dd.statusBox, 'warn', (withDups.length ? 'Задвоения удалены. ' : 'Задвоенных кодов не найдено — файл отдаётся как есть. ') + 'Итоги файла не сходятся с суммами строк (см. карточки) — можно нажать «Пересчитать итоги».');
-        else if (withDups.length) setStatus(dd.statusBox, 'ok', 'Удалено лишних вхождений кодов: ' + withDups.reduce((s, d) => s + d._dedup.removedCount, 0) + '. Итоги сходятся.');
+        else if (mismatch.length) setStatus(dd.statusBox, 'warn', (mergedCount ? 'Строки объединены. ' : 'Задвоенных кодов не найдено — файл отдаётся как есть. ') + 'Итоги файла не сходятся с суммами строк (см. карточки) — можно нажать «Пересчитать итоги».');
+        else if (mergedCount) setStatus(dd.statusBox, 'ok', 'Объединено строк: ' + mergedCount + '. Итоги сходятся.');
         else setStatus(dd.statusBox, 'ok', 'Задвоенных кодов не найдено — файл отдаётся как есть (с новым UUID в имени и ИдФайл, если галочка включена).');
         for (const doc of docs) {
           if (doc.loadError) { renderErrorCard(dd, doc); continue; }
@@ -5576,33 +5759,63 @@ function initUI(){
       }).catch(err => setStatus(dd.statusBox, 'err', (err && err.message) || String(err)));
     }
     function ddControls(body, doc){
-      const d = doc._dedup;
-      const dupBox = document.createElement('div');
-      if (!d.dups.length) {
-        dupBox.className = 'xc-verdict ok';
-        dupBox.textContent = 'Задвоенных кодов не найдено' + (dd.uuid.checked ? ' — файл отдаётся как есть (с новым UUID в имени и ИдФайл)' : ' — файл отдаётся как есть') + '.';
-      } else {
-        dupBox.className = 'xc-verdict warn';
-        dupBox.innerHTML = 'Найдено задвоений: <b>' + d.dups.length + '</b> (лишних вхождений удалено: ' + d.removedCount + '; осталось кодов: ' + d.kept + ')';
+      const st = doc._stats;
+      const merged = st.mergedGroups, nonMerge = st.nonMergeable;
+      const infoBox = document.createElement('div');
+      if (merged.length) {
+        infoBox.className = 'xc-verdict ok';
+        infoBox.innerHTML = 'Объединено строк: <b>' + merged.length + '</b> (было ' + st.rowsBefore + ', стало ' + st.rowsAfter + ')' + (st.intraRemoved ? ', удалено задвоенных кодов внутри строк: ' + st.intraRemoved : '');
+      } else if (st.intraRemoved) {
+        infoBox.className = 'xc-verdict ok';
+        infoBox.textContent = 'Удалено задвоенных кодов внутри строк: ' + st.intraRemoved + '.';
+      } else if (!nonMerge.length) {
+        infoBox.className = 'xc-verdict ok';
+        infoBox.textContent = 'Задвоенных кодов не найдено' + (dd.uuid.checked ? ' — файл отдаётся как есть (с новым UUID в имени и ИдФайл)' : ' — файл отдаётся как есть') + '.';
+      }
+      if (infoBox.className) body.appendChild(infoBox);
+      // объединённые группы
+      if (merged.length) {
         const list = document.createElement('details');
-        if (d.dups.length <= 10) list.open = true; // больше 10 групп — список свёрнут
+        const countRows = merged.reduce((s, mg) => s + mg.rows.length, 0);
+        if (countRows <= 10) list.open = true; // больше 10 строк — список свёрнут
         const sumEl = document.createElement('summary');
-        sumEl.textContent = 'Показать задвоенные коды';
+        sumEl.textContent = 'Показать объединения строк';
         list.appendChild(sumEl);
         const listBox = document.createElement('div');
         listBox.className = 'xc-difflist';
         listBox.style.marginTop = '8px';
-        for (const dup of d.dups) {
+        for (const mg of merged) {
           const row = document.createElement('div');
           row.className = 'xc-diffitem';
-          const where = dup.occ.map(o => 'стр. ' + o.owner.номСтр + ' (товар: ' + (o.owner.наимТов || '?') + ')').join(', ');
-          row.innerHTML = '<div class="p"><code>' + escHtml(dup.code) + '</code> ×' + dup.total + '</div><div class="was">' + escHtml(where) + '</div>';
+          const where = 'стр. ' + mg.rows.map(r => r.номСтр).join(' + ') + ' → стр. ' + mg.keepНомСтр + ' (товар: ' + mg.rows[0].наимТов + ', КолТов ' + mg.rows.map(r => r.колТов).join('+') + '=' + mg.колТов + ', кодов: ' + mg.codes + ')';
+          row.innerHTML = '<div class="was">' + escHtml(where) + '</div>';
+          if (mg.инфПолФХЖ2.length) row.innerHTML += '<div class="p">ИнфПолФХЖ2, оставшиеся в удалённых строках: ' + escHtml(mg.инфПолФХЖ2.map(z => z.идентиф + ' = ' + z.значен).join('; ')) + '</div>';
           listBox.appendChild(row);
         }
         list.appendChild(listBox);
-        dupBox.appendChild(list);
+        body.appendChild(list);
       }
-      body.appendChild(dupBox);
+      // перенумерация
+      if (st.renumbered.length) {
+        const rn = document.createElement('details');
+        if (st.renumbered.length <= 10) rn.open = true;
+        const rs = document.createElement('summary');
+        rs.textContent = 'Перенумерация строк (НомСтр)';
+        rn.appendChild(rs);
+        const rb = document.createElement('div');
+        rb.className = 'xc-difflist';
+        rb.style.marginTop = '8px';
+        rb.innerHTML = '<div class="xc-diffitem"><div class="was">' + escHtml(st.renumbered.map(r => 'стр. ' + r.from + ' → ' + r.to).join(', ')) + '</div></div>';
+        rn.appendChild(rb);
+        body.appendChild(rn);
+      }
+      // объединить нельзя
+      for (const nm of nonMerge) {
+        const wb = document.createElement('div');
+        wb.className = 'xc-verdict warn';
+        wb.textContent = 'Строки ' + nm.rows.map(r => '№' + r.номСтр).join(' и ') + ' связаны общими кодами, но объединить нельзя — различаются: ' + nm.reason + '. Лишние вхождения кодов удалены, строки не тронуты.';
+        body.appendChild(wb);
+      }
       // сверка итогов
       const v = ddVerdictText(doc);
       const verdict = document.createElement('div');
