@@ -540,6 +540,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 [data-sub="lnr"]{--sub:#D9A6C8}
 [data-sub="reid"]{--sub:#E0B872}
 [data-sub="pukd"]{--sub:#86C5CF}
+[data-sub="dupafter"]{--sub:#C9B6E4}
 [data-sub="help"]{--sub:var(--text-3)}
 /* ---- светлая тема: явный выбор ---- */
 [data-theme="light"] [data-sub="ukd"]{--sub:#3F6FA8}
@@ -547,6 +548,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
 [data-theme="light"] [data-sub="lnr"]{--sub:#A3537F}
 [data-theme="light"] [data-sub="reid"]{--sub:#A06F14}
 [data-theme="light"] [data-sub="pukd"]{--sub:#2F8590}
+[data-theme="light"] [data-sub="dupafter"]{--sub:#7A5FB8}
 /* ---- цвета подвкладок 6–11 (§4.1) ---- */
 [data-sub="dedup"]{--sub:#E8A2A2}
 [data-sub="iupd"]{--sub:#B39DDB}
@@ -570,6 +572,7 @@ hr.sep{border:none;border-top:1px solid var(--hair);margin:16px 0}
   :root:not([data-theme="dark"]) [data-sub="lnr"]{--sub:#A3537F}
   :root:not([data-theme="dark"]) [data-sub="reid"]{--sub:#A06F14}
   :root:not([data-theme="dark"]) [data-sub="pukd"]{--sub:#2F8590}
+  :root:not([data-theme="dark"]) [data-sub="dupafter"]{--sub:#7A5FB8}
   :root:not([data-theme="dark"]) [data-sub="iupd"]{--sub:#6E56A8}
   :root:not([data-theme="dark"]) [data-sub="upd2ukd"]{--sub:#B5533F}
   :root:not([data-theme="dark"]) [data-sub="newupd"]{--sub:#5E7F2E}
@@ -670,6 +673,7 @@ textarea.xc-bad{border-color:var(--coral)!important}
   <button class="xc-subbtn" type="button" data-sub="lnr">ЛДНР в ЭДО без кодов</button>
   <button class="xc-subbtn" type="button" data-sub="reid">Замена ID</button>
   <button class="xc-subbtn" type="button" data-sub="pukd">Правильный УКД (До и После)</button>
+  <button class="xc-subbtn" type="button" data-sub="dupafter">Коды После = До</button>
   <button class="xc-subbtn" type="button" data-sub="iupd">УПД → иУПД</button>
   <button class="xc-subbtn" type="button" data-sub="upd2ukd">УПД → УКД</button>
   <button class="xc-subbtn" type="button" data-sub="newupd">УПД → новый УПД</button>
@@ -1034,6 +1038,48 @@ textarea.xc-bad{border-color:var(--coral)!important}
 
     <div class="ukd-footer">Работает локально в браузере. Данные никуда не отправляются.</div>
 
+</div>
+</section>
+
+<!-- ==================== КОДЫ ПОСЛЕ = ДО ==================== -->
+<section class="xc-panel" data-sub="dupafter">
+<div id="tab-dupafter">
+  <div class="eyebrow">ЭДО · коды маркировки</div>
+  <h1 class="tab-title">Коды <span class="accent">После = До</span></h1>
+  <p class="tab-lede">После каждого блока кодов маркировки <code>&lt;НомСредИдентТовДо&gt;…&lt;/НомСредИдентТовДо&gt;</code> добавляет блок <code>&lt;НомСредИдентТовПосле&gt;</code> с теми же кодами по порядку. Остальное содержимое файла не меняется, ID не трогаются, кодировка сохраняется. Если блок «После» в товаре уже есть — товар не трогается. Работает локально, ничего не отправляет.</p>
+
+  <div class="grid2" style="align-items:start">
+    <div class="card">
+      <h3>1. Загрузка и скачивание</h3>
+      <div class="dropzone" id="dupafterDrop">
+        <strong>⊕ Перетащите сюда XML или архив ZIP, или выберите файлы</strong>
+        <div class="dz-sub">можно один или несколько файлов · .xml / .zip (из архива берутся только *.xml)</div>
+        <input type="file" id="dupafterFileInput" accept=".xml,.zip,text/xml,application/xml,application/zip" multiple>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <button class="btn btn-accent2" id="dupafterDownloadBtn" type="button">↓ Скачать всё</button>
+        <button class="btn btn-danger" id="dupafterClearBtn" type="button">✕ Очистить</button>
+      </div>
+
+      <div id="dupafterStatus" class="status"></div>
+
+      <details style="margin-top:16px;border:1px solid var(--hair);border-radius:var(--radius);padding:12px 14px;background:var(--bg-2)">
+        <summary style="cursor:pointer;font-weight:700;color:var(--text)">Как это работает</summary>
+        <ol style="margin:10px 0 0 20px;line-height:1.6;color:var(--text-3)">
+          <li>Загрузите XML (или ZIP с XML) — обработка запустится сразу.</li>
+          <li>В каждом товаре после блока «До» появится блок «После» с теми же кодами <code>НомУпак</code> по порядку.</li>
+          <li>Если у товара блок «После» уже был — товар остаётся без изменений.</li>
+          <li>Скачайте файл кликом по имени или всё сразу кнопкой «Скачать всё» (несколько файлов — ZIP-архивом).</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>2. Результат</h3>
+      <div id="dupafterPreview" class="result-list"></div>
+    </div>
+  </div>
 </div>
 </section>
 
@@ -4161,7 +4207,13 @@ function buildUkdFromUpd(updText, opts){
   if (t.err) return { ok: false, error: 'XML повреждён: ' + t.err };
   const elems = t.elems;
   const сч = firstElem(elems, 'СвСчФакт');
-  if (!сч) return { ok: false, error: 'В файле нет СвСчФакт — это не похоже на УПД.' };
+  if (!сч) {
+    // частая ситуация: в эту вкладку загрузили УКД (СвКСчФ) вместо УПД — объясняем это прямо
+    const isUkd = !!firstElem(elems, 'СвКСчФ');
+    return { ok: false, error: isUkd
+      ? 'В файле нет СвСчФакт — это УКД, а не УПД. Вкладка «УПД → УКД» принимает только УПД; для работы с УКД используйте вкладки «УКД → иУКД» или «Правильный УКД (До и После)».'
+      : 'В файле нет СвСчФакт — это не похоже на УПД.' };
+  }
   const док = firstElem(elems, 'Документ');
   const свПрод = firstElem(elems, 'СвПрод');
   const свПокуп = firstElem(elems, 'СвПокуп');
@@ -5367,6 +5419,14 @@ function initUI(){
     search.type = 'search';
     search.placeholder = 'например: ИННЮЛ, 6168094377, СвПрод…';
     wrap.appendChild(search);
+    // одна кнопка: развернуть все поля и тут же свернуть их обратно
+    const expandBtn = document.createElement('button');
+    expandBtn.type = 'button';
+    expandBtn.className = 'btn btn-sm';
+    expandBtn.style.margin = '8px 0 4px';
+    expandBtn.dataset.mode = 'off';
+    expandBtn.textContent = '⤢ Развернуть все поля';
+    wrap.appendChild(expandBtn);
     const tree = document.createElement('div');
     tree.className = 'xc-tree';
     wrap.appendChild(tree);
@@ -5431,6 +5491,32 @@ function initUI(){
       return details;
     }
     for (const el of (kids.get(-1) || [])) tree.appendChild(makeNode(el));
+    expandBtn.addEventListener('click', () => {
+      const expanding = expandBtn.dataset.mode !== 'on';
+      if (expanding) {
+        // раскрываем ленивое дерево: несколько проходов, пока достройка узлов добавляет новые
+        expandBtn.dataset.mode = 'on';
+        expandBtn.textContent = '⤡ Свернуть все поля';
+        for (let pass = 0; pass < 60; pass++) {
+          let added = false;
+          tree.querySelectorAll('details.xc-node').forEach(d => {
+            const id = Number(d.dataset.elem);
+            if (!d._filled) { nodeFilled(d, doc.tokens.elems[id]); added = true; }
+            if (!d.open) { d.open = true; added = true; }
+          });
+          if (!added) break;
+        }
+      } else {
+        expandBtn.dataset.mode = 'off';
+        expandBtn.textContent = '⤢ Развернуть все поля';
+        tree.querySelectorAll('details.xc-node').forEach(d => {
+          d.open = false;
+          if (d._filled) { d._filled = false; const b = d.querySelector('.xc-nbody'); b.innerHTML = ''; }
+        });
+        const first = tree.querySelector('details.xc-node');
+        if (first) { first.open = true; nodeFilled(first, doc.tokens.elems[Number(first.dataset.elem)]); }
+      }
+    });
     let timer = null;
     search.addEventListener('input', () => {
       clearTimeout(timer);
@@ -7204,17 +7290,139 @@ window.__unzipEntries = unzipEntries; // для вкладок «Замена ID
 
 /* ---------- версия / автор (в подвале) ---------- */
 const APP_VERSION = 'v1';
-const APP_DATE = '12.11.2026';
+const APP_DATE = '19.11.2026';
 (function renderVersion(){
   const el = $('appVersion');
   if(el) el.innerHTML = 'xmlconv ' + esc(APP_VERSION) + ' · ' + esc(APP_DATE) + ' · <span class="credit">Разработано Викторией Саламашко</span>';
 })();
+
+/* ---------- вкладка «Коды После = До» ---------- */
+window.__dupafterInit = function(){
+  const U = window.__ukdUtils;
+  if(!U) return;
+  const $ = id => document.getElementById(id);
+  const docs = [];
+
+  function status(type, msg){ const s = $('dupafterStatus'); s.className = 'status show ' + type; s.textContent = msg; }
+  function clearStatus(){ const s = $('dupafterStatus'); s.className = 'status'; s.textContent = ''; }
+
+  // после каждого блока «До» добавляем блок «После» с теми же кодами; возвращает {text, added}
+  function addAfterBlocks(text){
+    let added = 0;
+    const out = text.replace(/([ \t]*)<НомСредИдентТовДо>([\s\S]*?)<\/НомСредИдентТовДо>/g, (m, ind, inner) => {
+      added++;
+      return m + '\n' + ind + '<НомСредИдентТовПосле>' + inner + '</НомСредИдентТовПосле>';
+    });
+    return { text: out, added };
+  }
+
+  function render(){
+    const box = $('dupafterPreview');
+    if(!docs.length){ box.innerHTML = '<div class="hint">Пока файлы не выбраны. После загрузки здесь появятся карточки с числом добавленных блоков.</div>'; return; }
+    box.innerHTML = docs.map((d, i) => {
+      if(!d.ok) return '<div class="result-item"><strong>' + U.escapeHtml(d.srcName) + '</strong><span class="badge err">' + U.escapeHtml(d.error || '') + '</span></div>';
+      return '<div class="result-item">' +
+        '<strong><a href="#" data-dupafter-dl="' + i + '">' + U.escapeHtml(d.name) + '</a></strong>' +
+        '<div class="result-meta">' +
+        '<div>Добавлено блоков «После»: ' + d.added + ' (товаров с «До»: ' + d.total + ')' + (d.skipped ? ' · товаров с готовым «После»: ' + d.skipped : '') + '</div>' +
+        (d.encoding ? '<div>Кодировка: ' + U.escapeHtml(d.encoding) + '</div>' : '') +
+        '</div>' +
+        '<span class="badge ' + (d.added ? 'ok' : '') + '">' + (d.added ? 'добавлено' : 'без изменений') + '</span></div>';
+    }).join('');
+  }
+
+  function ready(){ return docs.filter(d => d.ok); }
+
+  async function setFiles(fileList){
+    clearStatus();
+    docs.length = 0;
+    const files = Array.from(fileList);
+    for(const f of files){
+      if(/\.zip$/i.test(f.name)){
+        try{
+          const entries = await window.__unzipEntries(f);
+          for(const e of entries) if(/\.xml$/i.test(e.name)) docs.push(processOne(e.name, e.data));
+        }catch(err){ docs.push({ srcName: f.name, ok: false, error: (err && err.message) || String(err) }); }
+      } else if(/\.xml$/i.test(f.name)){
+        docs.push(processOne(f.name, new Uint8Array(await f.arrayBuffer())));
+      } else {
+        docs.push({ srcName: f.name, ok: false, error: 'Пропущен: не .xml и не .zip' });
+      }
+    }
+    $('dupafterDrop').classList.add('loaded');
+    const good = ready();
+    status(good.length ? 'ok' : 'err',
+      'Загружено файлов: ' + docs.length + '. Готово: ' + good.length +
+      (good.length !== docs.length ? '. С ошибкой: ' + (docs.length - good.length) + '.' : '.') +
+      ' Скачайте по клику на имя файла или кнопкой «Скачать всё».');
+    render();
+  }
+
+  function processOne(srcName, bytes){
+    try{
+      const encoding = U.detectEncoding(bytes);
+      const text = U.decodeBytes(bytes, encoding);
+      if(text.indexOf('<НомСредИдентТовДо>') < 0) return { srcName, name: srcName, ok: false, error: 'Блоков НомСредИдентТовДо нет — файл не тронут', encoding, bytes };
+      // если в файле вообще нет ни одного «После» — добавляем ко всем; иначе только тем товарам, где «После» нет
+      const hasAfter = text.indexOf('<НомСредИдентТовПосле>') >= 0;
+      const total = (text.match(/<НомСредИдентТовДо>/g) || []).length;
+      let work = text, added = 0, skipped = 0;
+      if(!hasAfter){
+        const r = addAfterBlocks(work); work = r.text; added = r.added;
+      } else {
+        // добавляем только там, где сразу после блока «До» нет блока «После»
+        work = text.replace(/([ \t]*)<НомСредИдентТовДо>([\s\S]*?)<\/НомСредИдентТовДо>([ \t]*)\r?\n?(<НомСредИдентТовПосле>)?/g,
+          (m, ind, inner, ind2, afterOpen) => {
+            if(afterOpen){ skipped++; return m; }
+            added++;
+            return m + '\n' + ind + '<НомСредИдентТовПосле>' + inner + '</НомСредИдентТовПосле>';
+          });
+      }
+      const outBytes = U.encodeText(work, encoding);
+      return { srcName, name: srcName, ok: true, added, skipped, total, encoding, bytes: outBytes };
+    }catch(err){ return { srcName, ok: false, error: (err && err.message) || String(err) }; }
+  }
+
+  function downloadAll(){
+    const good = ready();
+    if(!good.length){ status('err', 'Нет готовых файлов для скачивания.'); return; }
+    if(good.length === 1){
+      U.downloadBytes(good[0].bytes, good[0].name, 'application/xml;charset=' + (good[0].encoding || 'windows-1251'));
+      status('ok', 'Скачан файл: ' + good[0].name);
+      return;
+    }
+    const zip = U.createZip(good.map(d => ({ name: d.name, data: d.bytes })));
+    const zipName = 'Коды_После_равны_До_' + U.formatDateForFile(new Date()) + '.zip';
+    U.downloadBytes(zip, zipName, 'application/zip');
+    status('ok', 'Скачан архив: ' + zipName + '. Файлов внутри: ' + good.length + '.');
+  }
+
+  const dz = $('dupafterDrop'), inp = $('dupafterFileInput');
+  inp.addEventListener('change', () => setFiles(inp.files));
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('dragover'); }));
+  dz.addEventListener('drop', e => { if(e.dataTransfer.files.length) setFiles(e.dataTransfer.files); });
+  $('dupafterDownloadBtn').addEventListener('click', downloadAll);
+  $('dupafterClearBtn').addEventListener('click', () => {
+    docs.length = 0; inp.value = ''; dz.classList.remove('loaded');
+    clearStatus(); render();
+  });
+  $('dupafterPreview').addEventListener('click', e => {
+    const a = e.target.closest('[data-dupafter-dl]');
+    if(!a) return;
+    e.preventDefault();
+    const d = docs[Number(a.getAttribute('data-dupafter-dl'))];
+    if(d && d.ok) U.downloadBytes(d.bytes, d.name, 'application/xml;charset=' + (d.encoding || 'windows-1251'));
+  });
+  render();
+};
 
 /* ---------- init: пять перенесённых инструментов ---------- */
 if(window.__markInit) window.__markInit();
 if(window.__lnrInit) window.__lnrInit();
 if(window.__reidInit) window.__reidInit();
 if(window.__pukdInit) window.__pukdInit();
+if(window.__dupafterInit) window.__dupafterInit();
 if(window.__ukdUtils && window.__ukdUtils.openValidation) document.getElementById('xcGlobalValidate').addEventListener('click', () => window.__ukdUtils.openValidation());
 })();
 </script>
